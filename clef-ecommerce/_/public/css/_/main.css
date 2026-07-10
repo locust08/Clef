@@ -1,0 +1,49 @@
+.font-heading.font-semibold.text-4xl {
+  color: #fff
+}
+.text-3xl {
+  text-align: left
+}
+.text-white {
+  color: #fbfbfb
+}
+.font-heading {
+  color: #000;
+  text-transform: capitalize;
+  text-align: center
+}
+.font-medium {
+  color: #000;
+  text-decoration-line: underline
+}
+.text-rhino-600 {
+  color: #3d00b4
+}
+.font-heading.font-semibold.text-rhino-600,
+.font-heading.font-semibold.text-rhino-700,
+.font-semibold {
+  color: #000
+}
+.font-heading.text-rhino-600 {
+  color: #5e0df9
+}
+.font-heading.font-semibold {
+  color: #fff
+}
+.font-heading.font-semibold.text-center.text-rhino-600 {
+  color: #030303
+}
+.text-sm.text-white {
+  color: #f9f9f9
+}
+.text-rhino-500 {
+  text-align: justify;
+  word-break: keep-all
+}
+.text-center {
+  text-align: center
+}
+.font-heading.font-semibold.text-rhino-500 {
+  color: #0d0d0e
+}
+

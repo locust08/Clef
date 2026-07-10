@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+!.env.template
+
+# Framework/build output
+.next/
+out/
+output/
+build/
+dist/
+.turbo/
+.cache/
+.medusa/
+coverage/
+
+# Generated local files
+*.tsbuildinfo
+next-env.d.ts
+
+# Local logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Tool/runtime state
+.vercel/
+.playwright-cli/
+.agents/
+.codex/
+
+# Legacy nested storefront repo; active storefront is clef-ecommerce itself.
+clef-ecommerce/apps/storefront/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local uploads and dumps
+uploads/
+medusa-db.sql

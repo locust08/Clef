@@ -1,0 +1,20 @@
+{
+  "name": "clef-project",
+  "private": true,
+  "scripts": {
+    "dev:ecommerce": "npm --prefix clef-ecommerce run dev",
+    "dev:payload": "npm --prefix clef-payload run dev",
+    "dev:medusa": "npm --prefix clef-medusa/apps/backend run dev",
+    "dev:free-ports": "node scripts/free-dev-ports.mjs",
+    "open:apps": "wait-on --interval 5000 --httpTimeout 60000 --timeout 300000 http://localhost:3000 http://localhost:3001/admin && wait-on --interval 2000 --httpTimeout 30000 --timeout 300000 --config wait-on.medusa.cjs http://localhost:9000 && wait-on --interval 2000 --httpTimeout 30000 --timeout 300000 http://localhost:9000/app && open-cli http://localhost:3000 && open-cli http://localhost:3001/admin && open-cli http://localhost:9000/app",
+    "dev": "npm run dev:free-ports && concurrently --kill-others-on-fail -n ecommerce,payload,medusa,browser \"npm run dev:ecommerce\" \"npm run dev:payload\" \"npm run dev:medusa\" \"npm run open:apps\"",
+    "frontend:dev": "npm run dev:ecommerce",
+    "payload:dev": "npm run dev:payload",
+    "medusa:dev": "npm run dev:medusa"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3",
+    "open-cli": "^9.0.0",
+    "wait-on": "^9.0.10"
+  }
+}
