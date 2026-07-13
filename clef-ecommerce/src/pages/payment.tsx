@@ -1,9 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
-import Script from 'next/script';
 import PaymentSectionCustomComponents3 from '../components/custom-components/PaymentSectionCustomComponents3';
-import PaymentSectionCheckout1 from '../components/checkout/PaymentSectionCheckout1';
-import PaymentSectionOrderSuccess4 from '../components/order-success/PaymentSectionOrderSuccess4';
+import CheckoutPanel from '../components/checkout/CheckoutPanel';
 import PaymentSectionCustomComponents2 from '../components/custom-components/PaymentSectionCustomComponents2';
 
 const Payment: React.FC = () => {
@@ -19,12 +17,10 @@ const Payment: React.FC = () => {
         />
       </Head>
       <PaymentSectionCustomComponents3 />
-      <PaymentSectionCheckout1 />
-      <PaymentSectionOrderSuccess4 />
+      <CheckoutPanel />
       <PaymentSectionCustomComponents2 />
     </>
   );
 };
 
 export default Payment;
-

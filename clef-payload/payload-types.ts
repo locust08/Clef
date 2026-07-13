@@ -194,6 +194,16 @@ export interface CategoryPage {
   videoTitle?: string | null;
   videoUrl?: string | null;
   videoThumbnail?: (number | null) | Media;
+  /**
+   * Add, remove, drag to reorder, or disable sections for this category page.
+   */
+  sections?:
+    | {
+        section: 'navigation' | 'hero' | 'benefits' | 'products' | 'video' | 'editorial' | 'footer';
+        isEnabled?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
@@ -216,6 +226,10 @@ export interface ClefEditArticle {
   description: string;
   questions?:
     | {
+        /**
+         * Medusa product handle. This makes the recommendation open the live product page.
+         */
+        productHandle?: string | null;
         question: string;
         answer: string;
         id?: string | null;
@@ -377,6 +391,13 @@ export interface CategoryPagesSelect<T extends boolean = true> {
   videoTitle?: T;
   videoUrl?: T;
   videoThumbnail?: T;
+  sections?:
+    | T
+    | {
+        section?: T;
+        isEnabled?: T;
+        id?: T;
+      };
   isActive?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -399,6 +420,7 @@ export interface ClefEditArticlesSelect<T extends boolean = true> {
   questions?:
     | T
     | {
+        productHandle?: T;
         question?: T;
         answer?: T;
         id?: T;
@@ -469,6 +491,9 @@ export interface Homepage {
   heroButtonLabel?: string | null;
   heroButtonHref?: string | null;
   bestSellerTitle?: string | null;
+  /**
+   * Paste the Medusa product handle only, for example clef-ocean-elixir-hydrating-cleanser. Do not include /product/ or a leading slash.
+   */
   bestSellerMedusaProductHandles?:
     | {
         handle: string;
@@ -479,6 +504,18 @@ export interface Homepage {
     | {
         title?: string | null;
         subtitle?: string | null;
+        /**
+         * Add one or more images. Multiple images rotate automatically on the storefront.
+         */
+        images?:
+          | {
+              image: number | Media;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Kept for existing content. It is shown first, followed by any Banner images above.
+         */
         image?: (number | null) | Media;
         href?: string | null;
         isActive?: boolean | null;
@@ -486,9 +523,22 @@ export interface Homepage {
       }[]
     | null;
   newLaunchTitle?: string | null;
+  /**
+   * Paste Medusa product handles only. Products and prices are always loaded live from Medusa.
+   */
   newLaunchMedusaProductHandles?:
     | {
         handle: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Add, remove, drag to reorder, or disable homepage sections. Content for each section is edited in the matching fields on this page.
+   */
+  sections?:
+    | {
+        section: 'hero' | 'categories' | 'best-sellers' | 'new-launch' | 'social' | 'testimonials';
+        isEnabled?: boolean | null;
         id?: string | null;
       }[]
     | null;
@@ -600,6 +650,12 @@ export interface HomepageSelect<T extends boolean = true> {
     | {
         title?: T;
         subtitle?: T;
+        images?:
+          | T
+          | {
+              image?: T;
+              id?: T;
+            };
         image?: T;
         href?: T;
         isActive?: T;
@@ -610,6 +666,13 @@ export interface HomepageSelect<T extends boolean = true> {
     | T
     | {
         handle?: T;
+        id?: T;
+      };
+  sections?:
+    | T
+    | {
+        section?: T;
+        isEnabled?: T;
         id?: T;
       };
   homepageVideos?:

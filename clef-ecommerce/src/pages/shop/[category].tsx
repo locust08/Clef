@@ -15,12 +15,14 @@ const CategoryPage: NextPage<CategoryPageProps> = ({
   categoryContent,
   footerContent,
   products,
+  headerProducts,
   medusaError,
 }) => (
   <CategoryShopTemplate
     category={category}
     categoryContent={categoryContent}
     footerContent={footerContent}
+    headerProducts={headerProducts}
     products={products}
     medusaError={medusaError}
   />

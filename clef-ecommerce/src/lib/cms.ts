@@ -8,9 +8,22 @@ export type CmsImage = {
 export type HomepagePromotionBanner = {
   title: string
   subtitle: string
-  image: CmsImage | null
+  images: CmsImage[]
   href: string
   isActive: boolean
+}
+
+export type HomepageSectionKey =
+  | 'hero'
+  | 'categories'
+  | 'best-sellers'
+  | 'new-launch'
+  | 'social'
+  | 'testimonials'
+
+export type HomepageSection = {
+  section: HomepageSectionKey
+  isEnabled: boolean
 }
 
 export type CustomerReviewContent = {
@@ -35,6 +48,7 @@ export type HomepageContent = {
   newLaunchMedusaProductHandles: string[]
   homepageVideos: VideoCardContent[]
   customerReviews: CustomerReviewContent[]
+  sections: HomepageSection[]
 }
 
 export type VideoPlatform = 'tiktok' | 'instagram' | 'facebook'
@@ -82,6 +96,21 @@ export type CategoryPageContent = {
   videoUrl: string
   videoThumbnail: CmsImage | null
   isActive: boolean
+  sections: CategoryPageSection[]
+}
+
+export type CategoryPageSectionKey =
+  | 'navigation'
+  | 'hero'
+  | 'benefits'
+  | 'products'
+  | 'video'
+  | 'editorial'
+  | 'footer'
+
+export type CategoryPageSection = {
+  section: CategoryPageSectionKey
+  isEnabled: boolean
 }
 
 export type ClefEditArticleQuestion = {
@@ -90,6 +119,7 @@ export type ClefEditArticleQuestion = {
 }
 
 export type ClefEditArticleProductSuggestion = {
+  productHandle: string
   name: string
   price: string
   description: string
@@ -133,6 +163,11 @@ type CmsHomepage = {
     | {
         title?: string | null
         subtitle?: string | null
+        images?:
+          | {
+              image?: CmsMedia | number | null
+            }[]
+          | null
         image?: CmsMedia | number | null
         href?: string | null
         isActive?: boolean | null
@@ -142,6 +177,12 @@ type CmsHomepage = {
   newLaunchMedusaProductHandles?: { handle?: string | null }[] | null
   homepageVideos?: CmsVideoRow[] | null
   customerReviews?: CmsCustomerReviewRow[] | null
+  sections?:
+    | {
+        section?: HomepageSectionKey | null
+        isEnabled?: boolean | null
+      }[]
+    | null
 }
 
 type CmsFooter = {
@@ -174,6 +215,12 @@ type CmsCategoryPage = {
   videoTitle?: string | null
   videoUrl?: string | null
   videoThumbnail?: CmsMedia | number | null
+  sections?:
+    | {
+        section?: CategoryPageSectionKey | null
+        isEnabled?: boolean | null
+      }[]
+    | null
   isActive?: boolean | null
 }
 
@@ -196,6 +243,7 @@ type CmsClefEditArticle = {
     | null
   productSuggestions?:
     | {
+        productHandle?: string | null
         name?: string | null
         price?: string | null
         description?: string | null
@@ -246,36 +294,42 @@ export const DEFAULT_HOMEPAGE_CONTENT: HomepageContent = {
     {
       title: 'Skincare',
       subtitle: '',
-      image: {
-        src: '/coleos-assets/banners/homepage-category-skincare.png',
-        alt: 'Skincare',
-        width: 632,
-        height: 316,
-      },
+      images: [
+        {
+          src: '/coleos-assets/banners/homepage-category-skincare.png',
+          alt: 'Skincare',
+          width: 632,
+          height: 316,
+        },
+      ],
       href: '/all-skincare',
       isActive: true,
     },
     {
       title: 'Personal Care',
       subtitle: '',
-      image: {
-        src: '/coleos-assets/banners/homepage-category-personal-care.png',
-        alt: 'Personal Care',
-        width: 632,
-        height: 316,
-      },
+      images: [
+        {
+          src: '/coleos-assets/banners/homepage-category-personal-care.png',
+          alt: 'Personal Care',
+          width: 632,
+          height: 316,
+        },
+      ],
       href: '/all-personal-care',
       isActive: true,
     },
     {
       title: 'Fragrance',
       subtitle: '',
-      image: {
-        src: '/coleos-assets/banners/homepage-category-fragrance.png',
-        alt: 'Fragrance',
-        width: 632,
-        height: 316,
-      },
+      images: [
+        {
+          src: '/coleos-assets/banners/homepage-category-fragrance.png',
+          alt: 'Fragrance',
+          width: 632,
+          height: 316,
+        },
+      ],
       href: '/fragrance',
       isActive: true,
     },
@@ -344,6 +398,14 @@ export const DEFAULT_HOMEPAGE_CONTENT: HomepageContent = {
       displayOrder: 2,
     },
   ],
+  sections: [
+    { section: 'hero', isEnabled: true },
+    { section: 'categories', isEnabled: true },
+    { section: 'best-sellers', isEnabled: true },
+    { section: 'new-launch', isEnabled: true },
+    { section: 'social', isEnabled: true },
+    { section: 'testimonials', isEnabled: true },
+  ],
 }
 
 const DEFAULT_VIDEO_SECTION_CONTENT: VideoSectionContent = {
@@ -391,6 +453,15 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
     videoUrl: '',
     videoThumbnail: null,
     isActive: true,
+    sections: [
+      { section: 'navigation', isEnabled: true },
+      { section: 'hero', isEnabled: true },
+      { section: 'benefits', isEnabled: true },
+      { section: 'products', isEnabled: true },
+      { section: 'video', isEnabled: true },
+      { section: 'editorial', isEnabled: true },
+      { section: 'footer', isEnabled: true },
+    ],
   },
   'personal-care': {
     title: 'Personal Care',
@@ -410,6 +481,15 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
     videoUrl: '',
     videoThumbnail: null,
     isActive: true,
+    sections: [
+      { section: 'navigation', isEnabled: true },
+      { section: 'hero', isEnabled: true },
+      { section: 'benefits', isEnabled: true },
+      { section: 'products', isEnabled: true },
+      { section: 'video', isEnabled: true },
+      { section: 'editorial', isEnabled: true },
+      { section: 'footer', isEnabled: true },
+    ],
   },
   fragrance: {
     title: 'Fragrance',
@@ -418,7 +498,7 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
     headerTitle: 'Take care of your performance every day.',
     headerSubtitle: '',
     headerImage: {
-      src: '/coleos-assets/headers/bg-image3.png',
+      src: '/coleos-assets/headers/fragrance-rose-echoes-hero.png',
       alt: 'Fragrance',
       width: 1600,
       height: 700,
@@ -428,6 +508,15 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
     videoUrl: '',
     videoThumbnail: null,
     isActive: true,
+    sections: [
+      { section: 'navigation', isEnabled: true },
+      { section: 'hero', isEnabled: true },
+      { section: 'benefits', isEnabled: true },
+      { section: 'products', isEnabled: true },
+      { section: 'video', isEnabled: true },
+      { section: 'editorial', isEnabled: true },
+      { section: 'footer', isEnabled: true },
+    ],
   },
 }
 
@@ -440,6 +529,7 @@ const DEFAULT_CLEF_EDIT_HERO_IMAGE: CmsImage = {
 
 const DEFAULT_CLEF_EDIT_PRODUCTS: ClefEditArticleProductSuggestion[] = [
   {
+    productHandle: 'clef-ocean-elixir-hydrating-cleanser',
     name: 'Gentle Hydrating Cleanser',
     price: 'RM 45.00',
     description:
@@ -450,6 +540,7 @@ const DEFAULT_CLEF_EDIT_PRODUCTS: ClefEditArticleProductSuggestion[] = [
     },
   },
   {
+    productHandle: 'clef-ocean-elixir-hydrating-moisturiser',
     name: 'Barrier Repair Moisturizer',
     price: 'RM 68.00',
     description:
@@ -457,6 +548,7 @@ const DEFAULT_CLEF_EDIT_PRODUCTS: ClefEditArticleProductSuggestion[] = [
     image: null,
   },
   {
+    productHandle: 'clef-ocean-elixir-hydrating-toner',
     name: 'Soothing Calm Serum',
     price: 'RM 89.00',
     description:
@@ -631,11 +723,44 @@ const rowsToHandles = (
 ) => {
   const handles =
     rows
-      ?.map((row) => row.handle?.trim())
+      ?.map((row) =>
+        row.handle
+          ?.trim()
+          .replace(/^https?:\/\/[^/]+\//, '')
+          .replace(/^(?:product|products)\//, '')
+          .replace(/^\/+/, ''),
+      )
       .filter((handle): handle is string => Boolean(handle)) ?? []
 
   return typeof limit === 'number' ? handles.slice(0, limit) : handles
 }
+
+const homepageSectionKeys: HomepageSectionKey[] = [
+  'hero',
+  'categories',
+  'best-sellers',
+  'new-launch',
+  'social',
+  'testimonials',
+]
+
+const isHomepageSectionKey = (value: unknown): value is HomepageSectionKey =>
+  homepageSectionKeys.includes(value as HomepageSectionKey)
+
+const categoryPageSectionKeys: CategoryPageSectionKey[] = [
+  'navigation',
+  'hero',
+  'benefits',
+  'products',
+  'video',
+  'editorial',
+  'footer',
+]
+
+const isCategoryPageSectionKey = (
+  value: unknown,
+): value is CategoryPageSectionKey =>
+  categoryPageSectionKeys.includes(value as CategoryPageSectionKey)
 
 const isHomepageVideoPlatform = (
   platform: string | null | undefined,
@@ -729,6 +854,7 @@ const rowsToArticleProducts = (
   const products =
     rows
       ?.map((row) => ({
+        productHandle: row.productHandle?.trim() ?? '',
         name: row.name?.trim() ?? '',
         price: row.price?.trim() ?? '',
         description: row.description?.trim() ?? '',
@@ -736,7 +862,14 @@ const rowsToArticleProducts = (
       }))
       .filter((row) => row.name && row.description) ?? []
 
-  return products.length ? products : fallback
+  if (!products.length) {
+    return fallback
+  }
+
+  return products.map((product, index) => ({
+    ...product,
+    productHandle: product.productHandle || fallback[index]?.productHandle || '',
+  }))
 }
 
 const toClefEditArticle = (
@@ -779,12 +912,34 @@ export const getHomepageContent = async (): Promise<HomepageContent> => {
     const activeBanners =
       homepage.promotionBanners
         ?.filter((banner) => banner.isActive !== false)
-        .map((banner) => ({
-          title: textOrFallback(banner.title, 'CLEF'),
-          subtitle: banner.subtitle ?? '',
-          image: toCmsImage(banner.image, banner.title ?? 'CLEF banner'),
-          href: textOrFallback(banner.href, '#'),
-          isActive: banner.isActive !== false,
+        .map((banner) => {
+          const title = textOrFallback(banner.title, 'CLEF')
+          const images = [
+            toCmsImage(banner.image, title),
+            ...(banner.images?.map((row) => toCmsImage(row.image, title)) ?? []),
+          ].filter((image): image is CmsImage => Boolean(image))
+          const uniqueImages = images.filter(
+            (image, index) =>
+              images.findIndex((candidate) => candidate.src === image.src) === index,
+          )
+
+          return {
+            title,
+            subtitle: banner.subtitle ?? '',
+            images: uniqueImages,
+            href: textOrFallback(banner.href, '#'),
+            isActive: banner.isActive !== false,
+          }
+        }) ?? []
+    const sections =
+      homepage.sections
+        ?.filter(
+          (row): row is { section: HomepageSectionKey; isEnabled?: boolean | null } =>
+            isHomepageSectionKey(row.section),
+        )
+        .map((row) => ({
+          section: row.section,
+          isEnabled: row.isEnabled !== false,
         })) ?? []
 
     return {
@@ -827,6 +982,9 @@ export const getHomepageContent = async (): Promise<HomepageContent> => {
       ),
       homepageVideos: rowsToHomepageVideos(homepage.homepageVideos),
       customerReviews: rowsToCustomerReviews(homepage.customerReviews),
+      sections: sections.length
+        ? sections
+        : DEFAULT_HOMEPAGE_CONTENT.sections,
     }
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
@@ -923,6 +1081,19 @@ export const getCategoryPageContent = async (
       return fallback
     }
 
+    const sections =
+      categoryPage.sections
+        ?.filter(
+          (row): row is {
+            section: CategoryPageSectionKey
+            isEnabled?: boolean | null
+          } => isCategoryPageSectionKey(row.section),
+        )
+        .map((row) => ({
+          section: row.section,
+          isEnabled: row.isEnabled !== false,
+        })) ?? []
+
     return {
       title: textOrFallback(categoryPage.title, fallback.title),
       slug: categoryPage.slug ?? fallback.slug,
@@ -945,6 +1116,7 @@ export const getCategoryPageContent = async (
         toCmsImage(categoryPage.videoThumbnail, categoryPage.videoTitle ?? '') ??
         fallback.videoThumbnail,
       isActive: true,
+      sections: sections.length ? sections : fallback.sections,
     }
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {

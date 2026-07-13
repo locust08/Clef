@@ -12,7 +12,7 @@ import { ClefEditArticles } from './src/payload/collections/ClefEditArticles'
 import { Media } from './src/payload/collections/Media'
 import { Users } from './src/payload/collections/Users'
 import { Footer } from './src/payload/globals/Footer'
-import { Homepage } from './src/payload/globals/Homepage'
+import { Homepage } from './src/payload/globals/HomepageGlobal'
 import { VideoSection } from './src/payload/globals/VideoSection'
 
 const filename = fileURLToPath(import.meta.url)

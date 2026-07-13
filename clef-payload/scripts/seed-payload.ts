@@ -62,6 +62,7 @@ type ClefEditArticleSeed = {
     answer: string
   }[]
   productSuggestions: {
+    productHandle: string
     name: string
     price: string
     description: string
@@ -154,6 +155,7 @@ const homepageSeed = {
     {
       title: 'Skincare Essentials',
       subtitle: 'Build a routine with CLEF skincare favorites.',
+      images: [],
       image: null,
       href: '/all-skincare',
       isActive: true,
@@ -161,6 +163,7 @@ const homepageSeed = {
     {
       title: 'Personal Care',
       subtitle: 'Everyday body care for simple daily rituals.',
+      images: [],
       image: null,
       href: '/all-personal-care',
       isActive: true,
@@ -300,6 +303,7 @@ const categorySeeds: CategorySeed[] = categorySeedBases.map((category) => ({
 
 const sharedProductSuggestions = [
   {
+    productHandle: 'clef-ocean-elixir-hydrating-cleanser',
     name: 'Gentle Hydrating Cleanser',
     price: 'RM 45.00',
     description:
@@ -307,6 +311,7 @@ const sharedProductSuggestions = [
     image: null,
   },
   {
+    productHandle: 'clef-ocean-elixir-hydrating-moisturiser',
     name: 'Barrier Repair Moisturizer',
     price: 'RM 68.00',
     description:
@@ -314,6 +319,7 @@ const sharedProductSuggestions = [
     image: null,
   },
   {
+    productHandle: 'clef-ocean-elixir-hydrating-toner',
     name: 'Soothing Calm Serum',
     price: 'RM 89.00',
     description:

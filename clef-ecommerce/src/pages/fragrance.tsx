@@ -59,7 +59,7 @@ const Fragrance: React.FC<CategoryPageProductsProps> = ({
       <AllSkincareSectionCustomComponents3 />
       <AllSkincareSectionNavigations2 />
       <AllSkincareSectionHeaders1
-        backgroundImage="/coleos-assets/headers/bg-image3.png"
+        backgroundImage="/coleos-assets/headers/fragrance-rose-echoes-hero.png"
         products={fragranceHeaderPlaceholders}
       />
       <section className="py-12 md:py-24 lg:py-32">

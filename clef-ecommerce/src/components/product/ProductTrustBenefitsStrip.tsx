@@ -41,14 +41,14 @@ const ProductTrustBenefitsStrip: React.FC<ProductTrustBenefitsStripProps> = ({
   className = '',
 }) => (
   <div className={`container mx-auto px-4 ${className}`.trim()}>
-    <div className="flex items-center flex-wrap -mx-4 pb-6">
+    <div className="grid overflow-hidden border-y border-[#E9DDD0] bg-[#FBF7F2] sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-[#E9DDD0]">
       {productTrustBenefits.map((benefit) => (
-        <div className="w-full sm:w-1/2 lg:w-1/4 p-4" key={benefit.title}>
-          <div className="flex items-center lg:justify-center gap-4">
-            <div className="flex-shrink-0 bg-orange-500 w-12 h-12 rounded-full flex items-center justify-center">
+        <div className="border-b border-[#E9DDD0] px-5 py-6 last:border-b-0 sm:px-7 lg:border-b-0 lg:px-6 xl:px-8" key={benefit.title}>
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-orange-500">
               <svg
                 aria-hidden="true"
-                className="h-6 w-6 text-white"
+                className="h-5 w-5 text-white"
                 fill="none"
                 viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
@@ -62,9 +62,9 @@ const ProductTrustBenefitsStrip: React.FC<ProductTrustBenefitsStripProps> = ({
                 />
               </svg>
             </div>
-            <div>
-              <p className="text-rhino-500 font-semibold">{benefit.title}</p>
-              <p className="text-rhino-400 text-sm font-medium">
+            <div className="min-w-0">
+              <p className="text-base font-semibold leading-6 text-[#6B3900]">{benefit.title}</p>
+              <p className="mt-1 text-sm font-medium leading-5 text-rhino-500">
                 {benefit.description}
               </p>
             </div>

@@ -46,6 +46,11 @@
   color: #0d0d0e
 }
 
+/* Page-level headings remain readable on the storefront's light canvas. */
+.clef-page-heading {
+  color: #7A4700 !important;
+}
+
 a,
 button {
   text-decoration-line: none;
@@ -129,3 +134,20 @@ button {
   box-shadow: 0 0 0 3px rgba(117, 115, 249, 0.16);
 }
 
+@keyframes clef-product-image-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[clef-product-image-in_220ms_ease-out\] {
+    animation: none;
+  }
+}

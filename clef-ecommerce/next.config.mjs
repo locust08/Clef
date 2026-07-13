@@ -10,6 +10,9 @@ const nextConfig = {
     root: __dirname,
   },
   images: {
+    // Payload serves uploaded media from the sibling app on localhost in
+    // development. Next blocks private-IP image optimization by default.
+    dangerouslyAllowLocalIP: process.env.NODE_ENV === 'development',
     remotePatterns: [
       {
         protocol: 'https',

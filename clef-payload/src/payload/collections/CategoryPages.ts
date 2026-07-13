@@ -84,6 +84,48 @@ export const CategoryPages: CollectionConfig = {
       relationTo: 'media',
     },
     {
+      name: 'sections',
+      label: 'Page sections',
+      type: 'array',
+      admin: {
+        description:
+          'Add, remove, drag to reorder, or disable sections for this category page.',
+        initCollapsed: true,
+      },
+      defaultValue: [
+        { section: 'navigation', isEnabled: true },
+        { section: 'hero', isEnabled: true },
+        { section: 'benefits', isEnabled: true },
+        { section: 'products', isEnabled: true },
+        { section: 'video', isEnabled: true },
+        { section: 'editorial', isEnabled: true },
+        { section: 'footer', isEnabled: true },
+      ],
+      fields: [
+        {
+          name: 'section',
+          label: 'Section to display',
+          type: 'select',
+          required: true,
+          options: [
+            { label: 'Category navigation', value: 'navigation' },
+            { label: 'Hero and featured Medusa products', value: 'hero' },
+            { label: 'Trust benefits', value: 'benefits' },
+            { label: 'Medusa product grid', value: 'products' },
+            { label: 'Video', value: 'video' },
+            { label: 'Editorial banners', value: 'editorial' },
+            { label: 'Footer', value: 'footer' },
+          ],
+        },
+        {
+          name: 'isEnabled',
+          label: 'Show this section',
+          type: 'checkbox',
+          defaultValue: true,
+        },
+      ],
+    },
+    {
       name: 'isActive',
       type: 'checkbox',
       defaultValue: true,

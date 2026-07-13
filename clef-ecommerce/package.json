@@ -8,16 +8,21 @@
         "build": "next build",
         "start": "next start",
         "lint": "eslint src next.config.mjs eslint.config.mjs",
-        "type-check": "tsc --noEmit"
+        "type-check": "tsc --noEmit",
+        "test": "node scripts/storefront-functions.test.mjs",
+        "test:e2e": "playwright test"
     },
     "dependencies": {
         "@medusajs/js-sdk": "^2.17.2",
+        "@types/pg": "^8.20.0",
         "next": "^16.2.10",
+        "pg": "^8.22.0",
         "react": "^19.2.7",
         "react-apexcharts": "^1.4.0",
         "react-dom": "^19.2.7"
     },
     "devDependencies": {
+        "@playwright/test": "^1.61.1",
         "@types/node": "22.20.0",
         "@types/react": "19.2.17",
         "@types/react-dom": "^19.1.6",

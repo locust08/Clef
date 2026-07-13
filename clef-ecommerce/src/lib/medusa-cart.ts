@@ -1,87 +1,164 @@
-const CART_ID_STORAGE_KEY = 'clef_medusa_cart_id';
+import {
+  clearStoredCartId,
+  formatMyr,
+  getStoreRegionId,
+  getStoredCartId,
+  normaliseMedusaError,
+  setStoredCartId,
+  storeFetch,
+} from './medusa-store';
 
-type StoreRegion = {
+type LooseCartLine = {
   id: string;
+  quantity?: number | null;
+  unit_price?: number | null;
+  total?: number | null;
+  title?: string | null;
+  variant?: {
+    id?: string | null;
+    title?: string | null;
+    product?: {
+      id?: string | null;
+      title?: string | null;
+      handle?: string | null;
+      thumbnail?: string | null;
+    } | null;
+  } | null;
+  thumbnail?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+type LooseCart = {
+  id: string;
+  email?: string | null;
+  completed_at?: string | null;
+  items?: LooseCartLine[];
   currency_code?: string | null;
-  countries?: {
-    iso_2?: string | null;
-  }[];
+  subtotal?: number | null;
+  shipping_total?: number | null;
+  discount_total?: number | null;
+  tax_total?: number | null;
+  total?: number | null;
 };
 
 type StoreCartResponse = {
-  cart?: {
-    id: string;
+  cart?: LooseCart;
+};
+
+export type CartLine = {
+  id: string;
+  variantId: string | null;
+  productId: string | null;
+  handle: string;
+  title: string;
+  variantTitle: string;
+  image: string;
+  quantity: number;
+  unitPrice: number;
+  unitPriceDisplay: string;
+  lineTotal: number;
+  lineTotalDisplay: string;
+  metadata?: Record<string, unknown> | null;
+};
+
+export type StorefrontCart = {
+  id: string;
+  email: string | null;
+  items: CartLine[];
+  subtotal: number;
+  subtotalDisplay: string;
+  shippingTotal: number;
+  shippingTotalDisplay: string;
+  discountTotal: number;
+  discountTotalDisplay: string;
+  taxTotal: number;
+  taxTotalDisplay: string;
+  total: number;
+  totalDisplay: string;
+};
+
+const normalizeAmount = (amount?: number | null) =>
+  typeof amount === 'number' && Number.isFinite(amount) ? amount : 0;
+
+const mapCartLine = (line: LooseCartLine): CartLine => {
+  const unitPrice = normalizeAmount(line.unit_price);
+  const quantity = Math.max(1, line.quantity ?? 1);
+  const lineTotal = normalizeAmount(line.total) || unitPrice * quantity;
+  const product = line.variant?.product;
+
+  return {
+    id: line.id,
+    variantId: line.variant?.id ?? null,
+    productId: product?.id ?? null,
+    handle: product?.handle ?? '',
+    title: line.title ?? product?.title ?? 'Product',
+    variantTitle: line.variant?.title ?? 'Default variant',
+    image: line.thumbnail ?? product?.thumbnail ?? '',
+    quantity,
+    unitPrice,
+    unitPriceDisplay: formatMyr(unitPrice),
+    lineTotal,
+    lineTotalDisplay: formatMyr(lineTotal),
+    metadata: line.metadata ?? null,
   };
 };
 
-const getBackendUrl = () =>
-  (process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000').replace(
-    /\/$/,
-    '',
-  );
+const mapCart = (cart: LooseCart): StorefrontCart => {
+  const subtotal = normalizeAmount(cart.subtotal);
+  const shippingTotal = normalizeAmount(cart.shipping_total);
+  const discountTotal = normalizeAmount(cart.discount_total);
+  const taxTotal = normalizeAmount(cart.tax_total);
+  const total =
+    normalizeAmount(cart.total) || subtotal + shippingTotal + taxTotal - discountTotal;
 
-const getPublishableKey = () =>
-  process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ?? '';
-
-const storeFetch = async <T>(path: string, init: RequestInit = {}) => {
-  const publishableKey = getPublishableKey();
-
-  if (!publishableKey) {
-    throw new Error('NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY is required.');
-  }
-
-  const response = await fetch(`${getBackendUrl()}${path}`, {
-    ...init,
-    headers: {
-      'content-type': 'application/json',
-      'x-publishable-api-key': publishableKey,
-      ...(init.headers ?? {}),
-    },
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Medusa Store API request failed: ${path}`);
-  }
-
-  return response.json() as Promise<T>;
+  return {
+    id: cart.id,
+    email: cart.email ?? null,
+    items: (cart.items ?? []).map(mapCartLine),
+    subtotal,
+    subtotalDisplay: formatMyr(subtotal),
+    shippingTotal,
+    shippingTotalDisplay: shippingTotal ? formatMyr(shippingTotal) : 'Calculated at checkout',
+    discountTotal,
+    discountTotalDisplay: discountTotal ? `-${formatMyr(discountTotal)}` : formatMyr(0),
+    taxTotal,
+    taxTotalDisplay: taxTotal ? formatMyr(taxTotal) : 'Calculated at checkout',
+    total,
+    totalDisplay: formatMyr(total),
+  };
 };
 
-export const getMedusaCartId = () => {
-  if (typeof window === 'undefined') {
+export const retrieveCart = async (cartId: string) => {
+  const response = await storeFetch<StoreCartResponse>(
+    `/store/carts/${cartId}?fields=*items,*items.variant,*items.variant.product`,
+  );
+
+  if (!response.cart?.id || response.cart.completed_at) {
+    clearStoredCartId();
+    throw new Error('This cart is no longer active. A new cart will be created.');
+  }
+
+  return mapCart(response.cart);
+};
+
+export const getActiveCart = async () => {
+  const cartId = getStoredCartId();
+
+  if (!cartId) {
     return null;
   }
 
-  return window.localStorage.getItem(CART_ID_STORAGE_KEY);
-};
+  try {
+    return await retrieveCart(cartId);
+  } catch {
+    clearStoredCartId();
 
-const setMedusaCartId = (cartId: string) => {
-  window.localStorage.setItem(CART_ID_STORAGE_KEY, cartId);
-};
-
-const getDefaultRegionId = async () => {
-  const response = await storeFetch<{ regions?: StoreRegion[] }>(
-    '/store/regions?fields=id,currency_code,*countries&limit=100',
-  );
-  const region =
-    response.regions?.find(
-      (item) =>
-        item.currency_code?.toLowerCase() === 'myr' ||
-        item.countries?.some(
-          (country) => country.iso_2?.toLowerCase() === 'my',
-        ),
-    ) ?? response.regions?.[0];
-  const regionId = region?.id;
-
-  if (!regionId) {
-    throw new Error('No Medusa region found for cart creation.');
+    return null;
   }
-
-  return regionId;
 };
 
-const createCart = async () => {
-  const regionId = await getDefaultRegionId();
+export const createCart = async () => {
+  const regionId = await getStoreRegionId();
   const response = await storeFetch<StoreCartResponse>('/store/carts', {
     method: 'POST',
     body: JSON.stringify({
@@ -93,12 +170,20 @@ const createCart = async () => {
     throw new Error('Medusa did not return a cart ID.');
   }
 
-  setMedusaCartId(response.cart.id);
+  setStoredCartId(response.cart.id);
 
-  return response.cart.id;
+  return mapCart(response.cart);
 };
 
-const getOrCreateCartId = async () => getMedusaCartId() ?? createCart();
+export const getOrCreateCart = async () => {
+  const activeCart = await getActiveCart();
+
+  if (activeCart) {
+    return activeCart;
+  }
+
+  return createCart();
+};
 
 export const addMedusaLineItem = async ({
   variantId,
@@ -109,14 +194,69 @@ export const addMedusaLineItem = async ({
   quantity: number;
   metadata?: Record<string, string>;
 }) => {
-  const cartId = await getOrCreateCartId();
+  const cart = await getOrCreateCart();
+  const response = await storeFetch<StoreCartResponse>(
+    `/store/carts/${cart.id}/line-items`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        variant_id: variantId,
+        quantity,
+        metadata,
+      }),
+    },
+  );
 
-  return storeFetch<StoreCartResponse>(`/store/carts/${cartId}/line-items`, {
-    method: 'POST',
-    body: JSON.stringify({
-      variant_id: variantId,
-      quantity,
-      metadata,
-    }),
-  });
+  if (!response.cart) {
+    throw new Error('Medusa did not return the updated cart.');
+  }
+
+  return mapCart(response.cart);
 };
+
+export const updateMedusaLineItem = async (lineItemId: string, quantity: number) => {
+  const cartId = getStoredCartId();
+
+  if (!cartId) {
+    throw new Error('Your cart has expired. Add the product again.');
+  }
+
+  const response = await storeFetch<StoreCartResponse>(
+    `/store/carts/${cartId}/line-items/${lineItemId}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        quantity: Math.max(1, quantity),
+      }),
+    },
+  );
+
+  if (!response.cart) {
+    throw new Error('Medusa did not return the updated cart.');
+  }
+
+  return mapCart(response.cart);
+};
+
+export const removeMedusaLineItem = async (lineItemId: string) => {
+  const cartId = getStoredCartId();
+
+  if (!cartId) {
+    throw new Error('Your cart has expired.');
+  }
+
+  const response = await storeFetch<StoreCartResponse>(
+    `/store/carts/${cartId}/line-items/${lineItemId}`,
+    {
+      method: 'DELETE',
+    },
+  );
+
+  if (!response.cart) {
+    return getActiveCart();
+  }
+
+  return mapCart(response.cart);
+};
+
+export const getCartErrorMessage = (error: unknown) => normaliseMedusaError(error);

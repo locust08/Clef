@@ -1,72 +1,63 @@
 import React from 'react';
 import CartDrawer from '../components/layout/CartDrawer';
-import { addMedusaLineItem } from '../lib/medusa-cart';
+import {
+  addMedusaLineItem,
+  getActiveCart,
+  getCartErrorMessage,
+  removeMedusaLineItem,
+  type StorefrontCart,
+  updateMedusaLineItem,
+} from '../lib/medusa-cart';
 import type { StorefrontProduct } from '../lib/medusa-products';
 
-const CART_STORAGE_KEY = 'clef_mock_cart';
-
-export type CartDisplayItem = {
-  id: string;
-  variantId?: string;
-  handle: string;
-  name: string;
-  category: string;
-  subcategory?: string | null;
-  price: number;
-  salePrice?: number | null;
-  priceDisplay?: string;
-  image: string;
-  description: string;
-  quantity: number;
-  metadata?: Record<string, string>;
-};
-
-type MockCartContextValue = {
-  items: CartDisplayItem[];
+type CartContextValue = {
+  cart: StorefrontCart | null;
+  items: StorefrontCart['items'];
   itemCount: number;
-  addItem: (product: CartDisplayItem) => void;
+  subtotalDisplay: string;
+  isCartLoading: boolean;
+  cartError: string | null;
   addMedusaItem: (input: {
     product: StorefrontProduct;
     variantId: string;
     quantity: number;
     metadata?: Record<string, string>;
   }) => Promise<void>;
+  updateLineItem: (lineItemId: string, quantity: number) => Promise<void>;
+  removeLineItem: (lineItemId: string) => Promise<void>;
+  refreshCart: () => Promise<void>;
   openCart: () => void;
   closeCart: () => void;
 };
 
-const MockCartContext = React.createContext<MockCartContextValue | null>(null);
+const CartContext = React.createContext<CartContextValue | null>(null);
 
 export const MockCartProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [items, setItems] = React.useState<CartDisplayItem[]>([]);
+  const [cart, setCart] = React.useState<StorefrontCart | null>(null);
   const [isCartOpen, setIsCartOpen] = React.useState(false);
+  const [isCartLoading, setIsCartLoading] = React.useState(true);
+  const [cartError, setCartError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    const storedCart = window.localStorage.getItem(CART_STORAGE_KEY);
-
-    if (!storedCart) {
-      return;
-    }
+  const refreshCart = React.useCallback(async () => {
+    setIsCartLoading(true);
+    setCartError(null);
 
     try {
-      setItems(JSON.parse(storedCart) as CartDisplayItem[]);
-    } catch {
-      window.localStorage.removeItem(CART_STORAGE_KEY);
+      setCart(await getActiveCart());
+    } catch (error) {
+      setCart(null);
+      setCartError(getCartErrorMessage(error));
+    } finally {
+      setIsCartLoading(false);
     }
   }, []);
 
   React.useEffect(() => {
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
-
-  const addItem = React.useCallback((product: CartDisplayItem) => {
-    setItems((currentItems) => [...currentItems, product]);
-    setIsCartOpen(true);
-  }, []);
+    void refreshCart();
+  }, [refreshCart]);
 
   const addMedusaItem = React.useCallback(
     async ({
-      product,
       variantId,
       quantity,
       metadata,
@@ -76,63 +67,103 @@ export const MockCartProvider: React.FC<React.PropsWithChildren> = ({ children }
       quantity: number;
       metadata?: Record<string, string>;
     }) => {
-      await addMedusaLineItem({
-        variantId,
-        quantity,
-        metadata,
-      });
+      if (!variantId) {
+        throw new Error('Select an available variant before adding this item.');
+      }
 
-      setItems((currentItems) => [
-        ...currentItems,
-        {
-          id: `${product.id}-${variantId}-${Date.now()}`,
+      setCartError(null);
+
+      try {
+        const updatedCart = await addMedusaLineItem({
           variantId,
-          handle: product.handle,
-          name: product.name,
-          category: product.category,
-          subcategory: product.subcategory,
-          price: product.price,
-          salePrice: product.salePrice ?? null,
-          priceDisplay: product.priceDisplay,
-          image: product.image,
-          description: product.description,
-          quantity,
+          quantity: Math.max(1, quantity),
           metadata,
-        },
-      ]);
-      setIsCartOpen(true);
+        });
+        setCart(updatedCart);
+        setIsCartOpen(true);
+      } catch (error) {
+        const message = getCartErrorMessage(error);
+        setCartError(message);
+        throw new Error(message);
+      }
     },
     [],
   );
 
+  const updateLineItem = React.useCallback(async (lineItemId: string, quantity: number) => {
+    setCartError(null);
+
+    try {
+      setCart(await updateMedusaLineItem(lineItemId, quantity));
+    } catch (error) {
+      setCartError(getCartErrorMessage(error));
+    }
+  }, []);
+
+  const removeLineItem = React.useCallback(async (lineItemId: string) => {
+    setCartError(null);
+
+    try {
+      setCart(await removeMedusaLineItem(lineItemId));
+    } catch (error) {
+      setCartError(getCartErrorMessage(error));
+    }
+  }, []);
+
+  const items = React.useMemo(() => cart?.items ?? [], [cart?.items]);
   const value = React.useMemo(
     () => ({
+      cart,
       items,
       itemCount: items.reduce((total, item) => total + item.quantity, 0),
-      addItem,
+      subtotalDisplay: cart?.subtotalDisplay ?? 'RM 0.00',
+      isCartLoading,
+      cartError,
       addMedusaItem,
+      updateLineItem,
+      removeLineItem,
+      refreshCart,
       openCart: () => setIsCartOpen(true),
       closeCart: () => setIsCartOpen(false),
     }),
-    [addItem, addMedusaItem, items],
+    [
+      addMedusaItem,
+      cart,
+      cartError,
+      isCartLoading,
+      items,
+      refreshCart,
+      removeLineItem,
+      updateLineItem,
+    ],
   );
 
   return (
-    <MockCartContext.Provider value={value}>
+    <CartContext.Provider value={value}>
       {children}
-      <GlobalCartDrawer isOpen={isCartOpen} items={items} onClose={() => setIsCartOpen(false)} />
-    </MockCartContext.Provider>
+      <CartDrawer
+        cart={cart}
+        error={cartError}
+        isLoading={isCartLoading}
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        onRemove={removeLineItem}
+        onUpdateQuantity={updateLineItem}
+      />
+    </CartContext.Provider>
   );
 };
 
 export const GlobalCartDrawer = CartDrawer;
 
-export function useMockCart() {
-  const context = React.useContext(MockCartContext);
+export function useCart() {
+  const context = React.useContext(CartContext);
 
   if (!context) {
-    throw new Error('useMockCart must be used inside MockCartProvider.');
+    throw new Error('useCart must be used inside MockCartProvider.');
   }
 
   return context;
 }
+
+export const useMockCart = useCart;

@@ -20,9 +20,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   }
 
   return (
-    <div className="flex flex-wrap -mx-4">
+    <div className="flex flex-wrap items-stretch -mx-4">
       {products.map((product) => (
-        <div className="w-full xs:w-1/2 lg:w-1/4 px-4" key={product.id}>
+        <div className="flex w-full px-4 xs:w-1/2 lg:w-1/4" key={product.id}>
           <ProductCard product={product} />
         </div>
       ))}

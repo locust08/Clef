@@ -70,6 +70,13 @@ export const ClefEditArticles: CollectionConfig = {
       type: 'array',
       fields: [
         {
+          name: 'productHandle',
+          type: 'text',
+          admin: {
+            description: 'Medusa product handle. This makes the recommendation open the live product page.',
+          },
+        },
+        {
           name: 'question',
           type: 'text',
           required: true,

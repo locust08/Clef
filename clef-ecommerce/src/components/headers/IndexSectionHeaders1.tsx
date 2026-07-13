@@ -108,33 +108,73 @@ type CmsPromotionBannerCardProps = {
 
 const CmsPromotionBannerCard: React.FC<CmsPromotionBannerCardProps> = ({
   banner,
-}) => (
-  <a
-    className="relative block h-[236px] overflow-hidden rounded-xl bg-[#F7F1EA] clef-link-highlight group"
-    href={banner.href}
-  >
-    {banner.image ? (
-      <Image
-        className="h-full w-full rounded-xl object-cover scale-105 blur-[2px] brightness-75 saturate-90 transition duration-700 ease-out group-hover:scale-110 group-hover:blur-0 group-hover:brightness-110 group-hover:saturate-110"
-        src={banner.image.src}
-        alt={banner.image.alt || banner.title}
-        width={banner.image.width ?? 632}
-        height={banner.image.height ?? 316}
-      />
-    ) : null}
-    <div className="absolute inset-0 rounded-xl bg-rhino-900/35 transition duration-700 ease-out group-hover:bg-rhino-900/10" />
-    <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-      <h2 className="font-heading text-3xl md:text-4xl font-semibold text-white drop-shadow-lg transition duration-500 ease-out group-hover:scale-105">
-        {banner.title}
-      </h2>
-      {banner.subtitle ? (
-        <p className="mt-3 max-w-sm text-sm text-white/90 drop-shadow">
-          {banner.subtitle}
-        </p>
-      ) : null}
-    </div>
-  </a>
-);
+}) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const images = banner.images;
+
+  useEffect(() => {
+    if (images.length < 2 || isPaused) {
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+
+    if (prefersReducedMotion) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % images.length);
+    }, AUTO_CHANGE_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [images.length, isPaused]);
+
+  useEffect(() => {
+    if (activeIndex >= images.length) {
+      setActiveIndex(0);
+    }
+  }, [activeIndex, images.length]);
+
+  const activeImage = images[activeIndex] ?? images[0];
+  const aspectRatio = activeImage
+    ? `${activeImage.width ?? 632} / ${activeImage.height ?? 316}`
+    : '2 / 1';
+
+  return (
+    <a
+      aria-label={banner.title || 'Promotion'}
+      className="relative block w-full overflow-hidden rounded-xl bg-[#F7F1EA] clef-link-highlight group transition-[aspect-ratio] duration-700"
+      href={banner.href}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      style={{ aspectRatio }}
+    >
+      {images.map((image, index) => {
+        const isActive = index === activeIndex;
+
+        return (
+          <Image
+            key={image.src}
+            alt={isActive ? image.alt || banner.title : ''}
+            className={`absolute inset-0 h-full w-full object-contain transition-all ease-out ${
+              isActive
+                ? 'opacity-100 scale-100'
+                : 'pointer-events-none opacity-0 scale-[1.02]'
+            }`}
+            fill
+            sizes="(min-width: 640px) 50vw, 100vw"
+            src={image.src}
+            style={{ transitionDuration: `${TRANSITION_MS}ms` }}
+          />
+        );
+      })}
+    </a>
+  );
+};
 
 type IndexSectionHeaders1Props = {
   content: HomepageContent;
