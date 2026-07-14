@@ -67,6 +67,8 @@ export const storeFetch = async <T>(
   }
 
   const { authToken, ...fetchInit } = init;
+  const effectiveAuthToken =
+    authToken === undefined ? getStoredCustomerToken() : authToken;
   const headers = new Headers(fetchInit.headers);
   headers.set('x-publishable-api-key', publishableKey);
 
@@ -74,8 +76,8 @@ export const storeFetch = async <T>(
     headers.set('content-type', 'application/json');
   }
 
-  if (authToken) {
-    headers.set('authorization', `Bearer ${authToken}`);
+  if (effectiveAuthToken) {
+    headers.set('authorization', `Bearer ${effectiveAuthToken}`);
   }
 
   const response = await fetch(`${getMedusaBackendUrl()}${path}`, {

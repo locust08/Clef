@@ -33,8 +33,9 @@ const safeHref = (href: string | undefined, fallback: string) =>
 const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => {
   const [email, setEmail] = React.useState('');
   const [message, setMessage] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const handleSubscribe = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubscribe = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedEmail = email.trim().toLowerCase();
 
@@ -43,8 +44,40 @@ const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => {
       return;
     }
 
-    setEmail('');
-    setMessage('Thanks. You are on the CLEF newsletter list.');
+    setIsSubmitting(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/leads', {
+        body: JSON.stringify({
+          email: trimmedEmail,
+          source: 'footer-newsletter',
+          type: 'newsletter',
+        }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      });
+      const result = await response.json() as {
+        accepted?: boolean;
+        error?: string;
+        warnings?: string[];
+      };
+
+      if (!response.ok || !result.accepted) {
+        throw new Error(result.error || 'Unable to submit your email right now.');
+      }
+
+      setEmail('');
+      setMessage(
+        result.warnings?.length
+          ? 'Thanks. Your signup was received, but our team notification is temporarily unavailable.'
+          : 'Thanks. Your signup was received by CLEF.',
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to submit your email right now.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -68,8 +101,9 @@ const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => {
                 <button
                   className="inline-flex w-full sm:w-auto items-center justify-center bg-purple-500 rounded-sm py-3 px-6 text-white text-center hover:bg-purple-600 transition duration-200 clef-button-primary"
                   type="submit"
+                  disabled={isSubmitting}
                 >
-                  Subscribe
+                  {isSubmitting ? 'Submitting...' : 'Subscribe'}
                 </button>
               </form>
               {message && <p className="mb-6 text-sm text-rhino-600">{message}</p>}

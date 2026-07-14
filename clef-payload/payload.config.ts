@@ -2,7 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { postgresAdapter } from '@payloadcms/db-postgres'
-import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
+import { resendAdapter } from '@payloadcms/email-resend'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
@@ -17,32 +17,17 @@ import { VideoSection } from './src/payload/globals/VideoSection'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
-const smtpHost = process.env.SMTP_HOST
-const smtpPort = Number(process.env.SMTP_PORT || 587)
-const smtpSecure = process.env.SMTP_SECURE === 'true' || smtpPort === 465
-const smtpUser = process.env.SMTP_USER
-const smtpPass = process.env.SMTP_PASS
-const emailFromAddress = process.env.SMTP_FROM_ADDRESS || 'no-reply@clef.local'
-const emailFromName = process.env.SMTP_FROM_NAME || 'CLEF Payload'
-const emailOverrideRecipient = process.env.SMTP_OVERRIDE_RECIPIENT
-const shouldSkipSmtpVerify = process.env.SMTP_SKIP_VERIFY === 'true'
+const emailEnabled = process.env.EMAIL_ENABLED?.toLowerCase() === 'true'
+const resendApiKey = process.env.RESEND_API_KEY?.trim()
+const emailFromAddress = process.env.EMAIL_FROM_ADDRESS?.trim()
+const emailFromName = process.env.EMAIL_FROM_NAME?.trim() || 'Clef'
 
 const emailAdapter =
-  smtpHost && smtpUser && smtpPass
-    ? nodemailerAdapter({
+  emailEnabled && resendApiKey && emailFromAddress
+    ? resendAdapter({
+        apiKey: resendApiKey,
         defaultFromAddress: emailFromAddress,
         defaultFromName: emailFromName,
-        overrideRecipientAddress: emailOverrideRecipient,
-        skipVerify: shouldSkipSmtpVerify,
-        transportOptions: {
-          auth: {
-            pass: smtpPass,
-            user: smtpUser,
-          },
-          host: smtpHost,
-          port: smtpPort,
-          secure: smtpSecure,
-        },
       })
     : undefined
 

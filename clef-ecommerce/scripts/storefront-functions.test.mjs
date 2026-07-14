@@ -123,8 +123,8 @@ assertIncludes(
 );
 assertIncludes(
   checkoutPanel,
-  'no payment provider is configured',
-  'Checkout must not fake successful payment when provider config is missing.',
+  'StripePaymentSection',
+  'Checkout must render the real Stripe payment integration.',
 );
 
 console.log('storefront function regression checks passed');

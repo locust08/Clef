@@ -77,6 +77,17 @@ const validatePassword = (password: string) => {
   }
 };
 
+const syncServerSession = async (authToken: string) => {
+  const response = await fetch('/api/auth/session', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${authToken}` },
+  });
+
+  if (!response.ok) {
+    throw new Error('The secure customer session could not be created.');
+  }
+};
+
 export const CustomerProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [customer, setCustomer] = React.useState<StorefrontCustomer | null>(null);
   const [token, setToken] = React.useState<string | null>(null);
@@ -98,6 +109,7 @@ export const CustomerProvider: React.FC<React.PropsWithChildren> = ({ children }
       const response = await storeFetch<CustomerResponse>('/store/customers/me', {
         authToken,
       });
+      await syncServerSession(authToken);
       setCustomer(mapCustomer(response));
       setToken(authToken);
     } catch (error) {
@@ -120,6 +132,7 @@ export const CustomerProvider: React.FC<React.PropsWithChildren> = ({ children }
 
       try {
         const response = await storeFetch<AuthResponse>('/auth/customer/emailpass', {
+          authToken: null,
           method: 'POST',
           body: JSON.stringify({
             email: normalizeEmail(email),
@@ -131,6 +144,7 @@ export const CustomerProvider: React.FC<React.PropsWithChildren> = ({ children }
           throw new Error('Medusa did not return a customer session.');
         }
 
+        await syncServerSession(response.token);
         setStoredCustomerToken(response.token);
         await loadCustomer(response.token);
         void Router.push(returnUrl);
@@ -161,6 +175,7 @@ export const CustomerProvider: React.FC<React.PropsWithChildren> = ({ children }
         const authResponse = await storeFetch<AuthResponse>(
           '/auth/customer/emailpass/register',
           {
+            authToken: null,
             method: 'POST',
             body: JSON.stringify({
               email,
@@ -184,8 +199,22 @@ export const CustomerProvider: React.FC<React.PropsWithChildren> = ({ children }
           }),
         });
 
-        setStoredCustomerToken(authResponse.token);
-        await loadCustomer(authResponse.token);
+        const loginResponse = await storeFetch<AuthResponse>(
+          '/auth/customer/emailpass',
+          {
+            authToken: null,
+            method: 'POST',
+            body: JSON.stringify({ email, password: input.password }),
+          },
+        );
+
+        if (!loginResponse.token) {
+          throw new Error('Medusa did not return a customer session after registration.');
+        }
+
+        await syncServerSession(loginResponse.token);
+        setStoredCustomerToken(loginResponse.token);
+        await loadCustomer(loginResponse.token);
         void Router.push(returnUrl);
       } catch (error) {
         const message = normaliseMedusaError(error);
@@ -197,6 +226,7 @@ export const CustomerProvider: React.FC<React.PropsWithChildren> = ({ children }
   );
 
   const logout = React.useCallback(() => {
+    void fetch('/api/auth/session', { method: 'DELETE' });
     clearStoredCustomerToken();
     setCustomer(null);
     setToken(null);
