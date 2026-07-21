@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "clef-payload-preview",
+  "main": "custom-worker.ts",
+  "compatibility_date": "2026-07-15",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "DEPLOYMENT_TARGET": "cloudflare-workers",
+    "PAYLOAD_PUBLIC_SERVER_URL": "https://clef-payload-preview.easondev.workers.dev",
+    "NEXT_PUBLIC_SERVER_URL": "https://clef-payload-preview.easondev.workers.dev",
+    "EMAIL_ENABLED": "false"
+  },
+  "d1_databases": [
+    {
+      "binding": "D1",
+      "database_name": "clef-payload-db",
+      "database_id": "660d2a9a-f9fd-4ca5-8c7e-b72f8da809d5",
+      "remote": true
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "clef-payload-media"
+    }
+  ]
+}

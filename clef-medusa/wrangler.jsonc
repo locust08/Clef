@@ -1,0 +1,46 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "clef-medusa",
+  "main": "cloudflare-container/src/index.ts",
+  "compatibility_date": "2026-07-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "containers": [
+    {
+      "class_name": "MedusaContainer",
+      "image": "./Dockerfile",
+      "instance_type": "standard-1",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MEDUSA_CONTAINER",
+        "class_name": "MedusaContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MedusaContainer"]
+    }
+  ],
+  "vars": {
+    "NODE_ENV": "production",
+    "PORT": "9000",
+    "HOST": "0.0.0.0",
+    "DATABASE_SCHEMA": "clef_medusa",
+    "PGOPTIONS": "-c search_path=clef_medusa",
+    "STRIPE_MODE": "sandbox",
+    "MEDUSA_BACKEND_URL": "https://clef-medusa.easondev.workers.dev",
+    "DEPLOYMENT_CONFIG_VERSION": "2026-07-21-storefront-cors-2",
+    "STORE_CORS": "https://clef-ecommerce.easondev.workers.dev",
+    "ADMIN_CORS": "https://clef-medusa.easondev.workers.dev",
+    "AUTH_CORS": "https://clef-ecommerce.easondev.workers.dev,https://clef-medusa.easondev.workers.dev",
+    "AWS_REQUEST_CHECKSUM_CALCULATION": "WHEN_REQUIRED",
+    "AWS_RESPONSE_CHECKSUM_VALIDATION": "WHEN_REQUIRED"
+  }
+}

@@ -27,7 +27,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
   }
 
   const authToken = getCustomerSessionToken(request)
-  console.info(`[checkout] completing cart=${cartId} auth=${authToken ? 'present' : 'absent'}`)
 
   try {
     const orderId = await completeOnce({
@@ -53,21 +52,15 @@ export default async function handler(request: NextApiRequest, response: NextApi
           }
         }
 
-        console.info(`[checkout] completion response type=${body.type ?? 'unknown'}`)
         return body.type === 'order'
           ? { type: 'order' as const, order: body.order }
           : { type: 'cart' as const, cart: body.cart, error: body.error || body.message }
       },
       authorizeOrder: async (id) => {
         setOrderAccessCookie(response, id)
-        console.info(`[checkout] returned order=${id}`)
       },
-      invalidateCart: async () => {
-        console.info('[checkout] cart cache invalidated (no-store)')
-      },
-      invalidateOrders: async () => {
-        console.info('[checkout] order history cache invalidated (no-store)')
-      },
+      invalidateCart: async () => undefined,
+      invalidateOrders: async () => undefined,
       clearCart: async () => undefined,
     })
 
@@ -82,4 +75,3 @@ export default async function handler(request: NextApiRequest, response: NextApi
     })
   }
 }
-

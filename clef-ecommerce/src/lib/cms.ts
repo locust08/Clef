@@ -99,6 +99,33 @@ export type CategoryPageContent = {
   sections: CategoryPageSection[]
 }
 
+export type AllProductsCategoryCard = {
+  title: string
+  image: CmsImage
+  href: string
+  badgeLabel: string
+}
+
+export type AllProductsHeroContent = {
+  title: string
+  image: CmsImage
+  ctaLabel: string
+}
+
+export type AllProductsFragranceBanner = {
+  eyebrow: string
+  title: string
+  description: string
+  videoUrl: string
+}
+
+export type AllProductsPageContent = {
+  title: string
+  hero: AllProductsHeroContent
+  categoryCards: AllProductsCategoryCard[]
+  fragranceBanner: AllProductsFragranceBanner | null
+}
+
 export type CategoryPageSectionKey =
   | 'navigation'
   | 'hero'
@@ -222,6 +249,30 @@ type CmsCategoryPage = {
       }[]
     | null
   isActive?: boolean | null
+}
+
+type CmsAllProductsCategoryCard = {
+  title?: string | null
+  image?: CmsMedia | number | null
+  href?: string | null
+  badgeLabel?: string | null
+}
+
+type CmsAllProductsCategory = {
+  heroTitle?: string | null
+  heroImage?: CmsMedia | number | null
+  heroCtaLabel?: string | null
+  categoryCards?: CmsAllProductsCategoryCard[] | null
+  bannerEyebrow?: string | null
+  bannerTitle?: string | null
+  bannerDescription?: string | null
+  bannerVideoUrl?: string | null
+}
+
+type CmsAllProductsPages = {
+  skincare?: CmsAllProductsCategory | null
+  personalCare?: CmsAllProductsCategory | null
+  fragrance?: CmsAllProductsCategory | null
 }
 
 type CmsClefEditArticle = {
@@ -520,6 +571,107 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
   },
 }
 
+export const DEFAULT_ALL_PRODUCTS_PAGE_CONTENT: Record<
+  'skincare' | 'personal-care' | 'fragrance',
+  AllProductsPageContent
+> = {
+  skincare: {
+    title: 'Skincare',
+    hero: {
+      title: 'Take Care Of Your Performance Every Day.',
+      image: {
+        src: 'https://static.shuffle.dev/uploads/files/6f/6fb48a03fbf8bf9e36f18c917c673f67c9eac42d/5cb097d9-0f1d-4b51-9ad3-3cfab9fcfeec.png',
+        alt: 'Skincare',
+      },
+      ctaLabel: 'Start Buying',
+    },
+    categoryCards: [
+      {
+        title: 'Anti Aging',
+        image: { src: '/coleos-assets/banners/image7.png', alt: 'Anti Aging' },
+        href: '/shop/skincare/anti-aging',
+        badgeLabel: '',
+      },
+      {
+        title: 'Ocean Elixir',
+        image: { src: '/coleos-assets/banners/image6-small.png', alt: 'Ocean Elixir' },
+        href: '/shop/skincare/ocean-elixir',
+        badgeLabel: '',
+      },
+      {
+        title: 'Sheet Mask',
+        image: { src: '/coleos-assets/banners/image5-large.png', alt: 'Sheet Mask' },
+        href: '/shop/skincare/sheet-mask',
+        badgeLabel: '',
+      },
+      {
+        title: 'Facial Mask',
+        image: { src: '/coleos-assets/banners/image4-large.png', alt: 'Facial Mask' },
+        href: '/shop/skincare/facial-mask',
+        badgeLabel: '',
+      },
+    ],
+    fragranceBanner: null,
+  },
+  'personal-care': {
+    title: 'Personal Care',
+    hero: {
+      title: 'Take Care Of Your Performance Every Day.',
+      image: {
+        src: '/coleos-assets/headers/personal-care-hero.png',
+        alt: 'Personal Care',
+      },
+      ctaLabel: 'Start Buying',
+    },
+    categoryCards: [
+      {
+        title: 'Deodorant',
+        image: { src: '/coleos-assets/banners/image7.png', alt: 'Deodorant' },
+        href: '/shop/personal-care/deodorant',
+        badgeLabel: 'NEW LAUNCH',
+      },
+      {
+        title: 'Sunscreen',
+        image: { src: '/coleos-assets/banners/image6-small.png', alt: 'Sunscreen' },
+        href: '/shop/personal-care/sunscreen',
+        badgeLabel: '',
+      },
+      {
+        title: 'Bath Gel',
+        image: { src: '/coleos-assets/banners/image5-large.png', alt: 'Bath Gel' },
+        href: '/shop/personal-care/bath-gel',
+        badgeLabel: '',
+      },
+      {
+        title: 'Lotion',
+        image: { src: '/coleos-assets/banners/image4-large.png', alt: 'Lotion' },
+        href: '/shop/personal-care/lotion',
+        badgeLabel: '',
+      },
+    ],
+    fragranceBanner: null,
+  },
+  fragrance: {
+    title: 'Fragrance',
+    hero: {
+      title: 'Take Care Of Your Performance Every Day.',
+      image: {
+        src: '/coleos-assets/headers/fragrance-rose-echoes-hero.png',
+        alt: 'Fragrance',
+      },
+      ctaLabel: 'Start Buying',
+    },
+    categoryCards: [],
+    fragranceBanner: {
+      eyebrow: 'Watch Now!',
+      title: 'Live a little and your life will come alive',
+      description:
+        'CLEF Fragrance is a collection of fine fragrances that awaken your sense of ritual.',
+      videoUrl: 'https://www.youtube.com/embed/_9VUPq3SxOc',
+    },
+  },
+}
+
 const DEFAULT_CLEF_EDIT_HERO_IMAGE: CmsImage = {
   src: 'https://static.shuffle.dev/uploads/files/6f/6fb48a03fbf8bf9e36f18c917c673f67c9eac42d/pexels-rdne-4911181-1-09e74c56-aaec-46c1-a984-83a9632240d0.webp',
   alt: 'Woman applying skincare while wearing a pink hijab',
@@ -659,11 +811,19 @@ const homepageVideoPlatforms: VideoPlatform[] = [
   'facebook',
 ]
 
-const getCmsBaseUrl = () =>
-  (process.env.NEXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3001').replace(
-    /\/$/,
-    '',
-  )
+const getCmsBaseUrl = () => {
+  const configuredUrl = process.env.NEXT_PUBLIC_PAYLOAD_URL?.trim()
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, '')
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return 'http://localhost:3001'
+  }
+
+  throw new Error('NEXT_PUBLIC_PAYLOAD_URL is required in production.')
+}
 
 export const getCmsUrl = (path = '') => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
@@ -1050,6 +1210,81 @@ export const getFooterContent = async (): Promise<FooterContent> => {
     }
 
     return DEFAULT_FOOTER_CONTENT
+  }
+}
+
+export const getAllProductsPageContent = async (
+  slug: 'skincare' | 'personal-care' | 'fragrance',
+): Promise<AllProductsPageContent> => {
+  const fallback = DEFAULT_ALL_PRODUCTS_PAGE_CONTENT[slug]
+
+  try {
+    const allProductsPages = await cmsFetch<CmsAllProductsPages>(
+      '/api/globals/all-products-pages?depth=1',
+    )
+    const cmsContent =
+      slug === 'personal-care'
+        ? allProductsPages.personalCare
+        : allProductsPages[slug]
+
+    if (!cmsContent) {
+      return fallback
+    }
+
+    const categoryCards = fallback.categoryCards.map((fallbackCard, index) => {
+      const cmsCard = cmsContent.categoryCards?.[index]
+
+      return {
+        title: textOrFallback(cmsCard?.title, fallbackCard.title),
+        image:
+          toCmsImage(cmsCard?.image, cmsCard?.title ?? fallbackCard.title) ??
+          fallbackCard.image,
+        href: textOrFallback(cmsCard?.href, fallbackCard.href),
+        badgeLabel:
+          cmsCard?.badgeLabel?.trim() ?? fallbackCard.badgeLabel,
+      }
+    })
+
+    return {
+      title: fallback.title,
+      hero: {
+        title: textOrFallback(cmsContent.heroTitle, fallback.hero.title),
+        image:
+          toCmsImage(cmsContent.heroImage, fallback.title) ??
+          fallback.hero.image,
+        ctaLabel: textOrFallback(
+          cmsContent.heroCtaLabel,
+          fallback.hero.ctaLabel,
+        ),
+      },
+      categoryCards,
+      fragranceBanner: fallback.fragranceBanner
+        ? {
+            eyebrow: textOrFallback(
+              cmsContent.bannerEyebrow,
+              fallback.fragranceBanner.eyebrow,
+            ),
+            title: textOrFallback(
+              cmsContent.bannerTitle,
+              fallback.fragranceBanner.title,
+            ),
+            description: textOrFallback(
+              cmsContent.bannerDescription,
+              fallback.fragranceBanner.description,
+            ),
+            videoUrl: textOrFallback(
+              cmsContent.bannerVideoUrl,
+              fallback.fragranceBanner.videoUrl,
+            ),
+          }
+        : null,
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[CMS] Unable to load All Products Page "${slug}".`, error)
+    }
+
+    return fallback
   }
 }
 

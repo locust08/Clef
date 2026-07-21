@@ -11,10 +11,35 @@ const DEFAULT_STOREFRONT_CORS = [
 ].join(',')
 
 const emailEnabled = process.env.EMAIL_ENABLED?.toLowerCase() === 'true'
+const isProduction = process.env.NODE_ENV === 'production'
 const resendApiKey = process.env.RESEND_API_KEY?.trim()
 const emailFromAddress = process.env.EMAIL_FROM_ADDRESS?.trim()
 const emailFromName = process.env.EMAIL_FROM_NAME?.trim() || 'Clef'
+const databaseUrl = process.env.DATABASE_URL?.trim()
+const redisUrl = process.env.REDIS_URL?.trim()
+const r2Endpoint = process.env.R2_ENDPOINT?.trim()
+const r2AccessKeyId = process.env.R2_ACCESS_KEY_ID?.trim()
+const r2SecretAccessKey = process.env.R2_SECRET_ACCESS_KEY?.trim()
+const r2SessionToken = process.env.R2_SESSION_TOKEN?.trim()
+const r2FileUrl = process.env.R2_FILE_URL?.trim()
 const stripeSandbox = getStripeSandboxConfig()
+
+if (isProduction && !databaseUrl) {
+  throw new Error('DATABASE_URL is required in production.')
+}
+
+if (isProduction && !redisUrl) {
+  throw new Error('REDIS_URL is required in production.')
+}
+
+if (
+  isProduction &&
+  (!r2Endpoint || !r2AccessKeyId || !r2SecretAccessKey || !r2SessionToken || !r2FileUrl)
+) {
+  throw new Error(
+    'Restricted R2 session credentials and R2_FILE_URL are required in production.',
+  )
+}
 
 if (emailEnabled && (!resendApiKey || !emailFromAddress)) {
   throw new Error(
@@ -24,6 +49,73 @@ if (emailEnabled && (!resendApiKey || !emailFromAddress)) {
 
 module.exports = defineConfig({
   modules: [
+    ...(redisUrl
+      ? [
+          {
+            resolve: '@medusajs/medusa/caching',
+            options: {
+              providers: [
+                {
+                  resolve: '@medusajs/caching-redis',
+                  id: 'redis',
+                  is_default: true,
+                  options: { redisUrl },
+                },
+              ],
+            },
+          },
+          {
+            resolve: '@medusajs/medusa/event-bus-redis',
+            options: { redisUrl },
+          },
+          {
+            resolve: '@medusajs/medusa/workflow-engine-redis',
+            options: { redis: { redisUrl } },
+          },
+          {
+            resolve: '@medusajs/medusa/locking',
+            options: {
+              providers: [
+                {
+                  resolve: '@medusajs/locking-redis',
+                  id: 'redis',
+                  is_default: true,
+                  options: { redisUrl },
+                },
+              ],
+            },
+          },
+        ]
+      : []),
+    ...(r2Endpoint && r2AccessKeyId && r2SecretAccessKey && r2SessionToken && r2FileUrl
+      ? [
+          {
+            resolve: '@medusajs/medusa/file',
+            options: {
+              providers: [
+                {
+                  resolve: '@medusajs/medusa/file-s3',
+                  id: 'r2',
+                  is_default: true,
+                  options: {
+                    file_url: r2FileUrl,
+                    access_key_id: r2AccessKeyId,
+                    secret_access_key: r2SecretAccessKey,
+                    session_token: r2SessionToken,
+                    region: 'auto',
+                    bucket: 'clef-medusa-media',
+                    endpoint: r2Endpoint,
+                    additional_client_config: {
+                      requestChecksumCalculation: 'WHEN_REQUIRED',
+                      responseChecksumValidation: 'WHEN_REQUIRED',
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ]
+      : []),
     {
       resolve: '@medusajs/medusa/payment',
       options: {
@@ -65,7 +157,8 @@ module.exports = defineConfig({
       : []),
   ],
   projectConfig: {
-    databaseUrl: process.env.DATABASE_URL,
+    databaseUrl,
+    redisUrl,
     databaseSchema: process.env.DATABASE_SCHEMA || "clef_medusa",
     http: {
       storeCors: process.env.STORE_CORS || DEFAULT_STOREFRONT_CORS,

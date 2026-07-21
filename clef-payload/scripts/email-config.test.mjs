@@ -10,7 +10,10 @@ const [configSource, usersSource, packageSource] = await Promise.all([
 const packageJson = JSON.parse(packageSource)
 
 test('uses the official version-matched Payload Resend adapter', () => {
-  assert.equal(packageJson.dependencies['@payloadcms/email-resend'], '^3.85.2')
+  assert.equal(
+    packageJson.dependencies['@payloadcms/email-resend'],
+    packageJson.dependencies.payload,
+  )
   assert.equal(packageJson.dependencies['@payloadcms/email-nodemailer'], undefined)
   assert.match(configSource, /resendAdapter\s*\(/)
   assert.match(configSource, /process\.env\.RESEND_API_KEY/)

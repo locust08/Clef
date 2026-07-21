@@ -8,20 +8,21 @@ import {
 } from '../data/category-config';
 import {
   getPersonalCareHeaderProducts,
-  getProductsByHandles,
   getProductsByCategoryHandle,
   getSkincareHeaderProducts,
   type StorefrontProduct,
 } from './medusa-products';
 import {
+  getAllProductsPageContent,
   getCategoryPageContent,
   getFooterContent,
+  type AllProductsPageContent,
   type CategoryPageContent,
   type FooterContent,
 } from './cms';
 
 export type CategoryPageProductsProps = {
-  categoryContent: CategoryPageContent;
+  categoryContent: AllProductsPageContent;
   footerContent: FooterContent;
   products: StorefrontProduct[];
   headerProducts?: StorefrontProduct[];
@@ -66,21 +67,6 @@ export const setNoStore = (context: GetServerSidePropsContext) => {
   );
 };
 
-const getProductsByPayloadHandles = async (handles: string[]) => {
-  if (!handles.length) {
-    return [];
-  }
-
-  const products = await getProductsByHandles(handles);
-  const productByHandle = new Map(
-    products.map((product) => [product.handle, product]),
-  );
-
-  return handles
-    .map((handle) => productByHandle.get(handle))
-    .filter((product): product is StorefrontProduct => Boolean(product));
-};
-
 export const getCategoryProductsProps = async (
   handle: string,
   context: GetServerSidePropsContext,
@@ -92,7 +78,7 @@ export const getCategoryProductsProps = async (
   }
 
   const [categoryContent, footerContent] = await Promise.all([
-    getCategoryPageContent(handle),
+    getAllProductsPageContent(handle as 'skincare' | 'personal-care' | 'fragrance'),
     getFooterContent(),
   ]);
 
@@ -101,13 +87,11 @@ export const getCategoryProductsProps = async (
       getProductsByCategoryHandle(handle, {
         includeDescendants: true,
       }),
-      categoryContent.topMedusaProductHandles.length
-        ? getProductsByPayloadHandles(categoryContent.topMedusaProductHandles)
-        : handle === 'skincare'
-          ? getSkincareHeaderProducts()
-          : handle === 'personal-care'
-            ? getPersonalCareHeaderProducts()
-            : Promise.resolve([]),
+      handle === 'skincare'
+        ? getSkincareHeaderProducts()
+        : handle === 'personal-care'
+          ? getPersonalCareHeaderProducts()
+          : Promise.resolve([]),
     ]);
 
     return {

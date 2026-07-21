@@ -34,7 +34,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
   const customerResponse = await medusaServerFetch('/store/customers/me?fields=id,email', {
     authToken: token,
   })
-  console.info(`[auth] session validation status=${customerResponse.status}`)
 
   if (!customerResponse.ok) {
     response.status(401).json({ message: 'The customer session is invalid or expired.' })
@@ -51,4 +50,3 @@ export default async function handler(request: NextApiRequest, response: NextApi
   setCustomerSessionCookie(response, token)
   response.status(200).json({ authenticated: true })
 }
-

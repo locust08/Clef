@@ -3,11 +3,17 @@ import React from 'react';
 import { useCustomer } from '../../context/CustomerContext';
 
 type LoginSectionSignIn1Props = {
+  mode: 'login' | 'register';
+  onBackToLogin: () => void;
   onForgotPassword: () => void;
+  onRegister: () => void;
 };
 
 const LoginSectionSignIn1: React.FC<LoginSectionSignIn1Props> = ({
+  mode,
+  onBackToLogin,
   onForgotPassword,
+  onRegister,
 }) => {
   const router = useRouter();
   const { customerError, login, register } = useCustomer();
@@ -91,6 +97,11 @@ const LoginSectionSignIn1: React.FC<LoginSectionSignIn1Props> = ({
     }));
   };
 
+  const changeView = (callback: () => void) => {
+    setMessage(null);
+    callback();
+  };
+
   return (
     <section className="relative overflow-hidden py-12">
       <img
@@ -99,10 +110,11 @@ const LoginSectionSignIn1: React.FC<LoginSectionSignIn1Props> = ({
         alt=""
       />
       <div className="container mx-auto px-4">
-        <div className="relative z-50 flex flex-wrap -mx-4">
-          <div className="w-full p-4 lg:w-1/2">
-            <div className="rounded-lg bg-rhino-900 px-4 py-10 md:px-8">
-              <form onSubmit={handleLogin}>
+        <div className="relative z-50 flex flex-wrap justify-center -mx-4">
+          {mode === 'login' && (
+            <div className="w-full p-4 lg:w-1/2">
+              <div className="rounded-lg bg-rhino-900 px-4 py-10 md:px-8">
+                <form onSubmit={handleLogin}>
                 <h2 className="mb-8 font-heading text-2xl font-semibold text-white">
                   Login
                 </h2>
@@ -147,7 +159,7 @@ const LoginSectionSignIn1: React.FC<LoginSectionSignIn1Props> = ({
                     I agree with this website handling my account session.
                   </label>
                 </div>
-                <div className="flex flex-wrap justify-between gap-4">
+                <div className="flex flex-wrap gap-4">
                   <button
                     className="rounded-sm bg-purple-500 px-4 py-3 text-sm font-medium text-white transition duration-200 hover:bg-purple-600 disabled:bg-purple-300 clef-button-primary"
                     disabled={isSubmitting}
@@ -157,19 +169,28 @@ const LoginSectionSignIn1: React.FC<LoginSectionSignIn1Props> = ({
                   </button>
                   <button
                     className="rounded-sm bg-white px-4 py-3 text-sm font-medium text-coolGray-700 shadow-md transition duration-200 hover:bg-purple-500 hover:text-white clef-button-primary"
-                    onClick={onForgotPassword}
+                    onClick={() => changeView(onRegister)}
+                    type="button"
+                  >
+                    Register
+                  </button>
+                  <button
+                    className="ml-auto rounded-sm bg-white px-4 py-3 text-sm font-medium text-coolGray-700 shadow-md transition duration-200 hover:bg-purple-500 hover:text-white clef-button-primary"
+                    onClick={() => changeView(onForgotPassword)}
                     type="button"
                   >
                     Forgot password?
                   </button>
                 </div>
-              </form>
+                </form>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="w-full p-4 lg:w-1/2">
-            <div className="rounded-lg bg-rhino-900 px-4 py-10 md:px-8">
-              <form onSubmit={handleRegister}>
+          {mode === 'register' && (
+            <div className="w-full p-4 lg:w-1/2">
+              <div className="rounded-lg bg-rhino-900 px-4 py-10 md:px-8">
+                <form onSubmit={handleRegister}>
                 <h2 className="mb-8 font-heading text-2xl font-semibold text-white">
                   Register
                 </h2>
@@ -284,9 +305,17 @@ const LoginSectionSignIn1: React.FC<LoginSectionSignIn1Props> = ({
                 >
                   {isSubmitting ? 'Creating account...' : 'Create Account'}
                 </button>
-              </form>
+                <button
+                  className="mx-auto mt-6 block text-sm font-medium text-white transition duration-200 hover:text-purple-300 clef-icon-button"
+                  onClick={() => changeView(onBackToLogin)}
+                  type="button"
+                >
+                  Back to Login
+                </button>
+                </form>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         {(message || customerError) && (
           <div className="relative z-50 mx-4 mt-4 rounded-sm bg-white p-4 text-sm text-rhino-600">

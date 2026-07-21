@@ -3,10 +3,8 @@ import Head from 'next/head';
 import AllSkincareSectionCustomComponents3 from '../custom-components/AllSkincareSectionCustomComponents3';
 import AllSkincareSectionNavigations2 from '../navigations/AllSkincareSectionNavigations2';
 import AllSkincareSectionHeaders1 from '../headers/AllSkincareSectionHeaders1';
-import CategoryVideoSection from '../banners/CategoryVideoSection';
-import AllSkincareSectionBanners6 from '../banners/AllSkincareSectionBanners6';
 import AllSkincareSectionCustomComponents5 from '../custom-components/AllSkincareSectionCustomComponents5';
-import AllPersonalCareSectionBanners6 from '../banners/AllPersonalCareSectionBanners6';
+import CategoryImageCardsSection from '../banners/CategoryImageCardsSection';
 import FragranceSectionBanners5 from '../banners/FragranceSectionBanners5';
 import FragranceSectionFooters6 from '../footers/FragranceSectionFooters6';
 import Footer from '../layout/Footer';
@@ -14,14 +12,14 @@ import ProductGrid from '../product/ProductGrid';
 import ProductTrustBenefitsStrip from '../product/ProductTrustBenefitsStrip';
 import type { CategorySlug } from '../../data/category-config';
 import type {
-  CategoryPageContent,
+  AllProductsPageContent,
   FooterContent,
 } from '../../lib/cms';
 import type { StorefrontProduct } from '../../lib/medusa-products';
 
 type CategoryShopTemplateProps = {
   category: CategorySlug;
-  categoryContent: CategoryPageContent;
+  categoryContent: AllProductsPageContent;
   footerContent: FooterContent;
   products: StorefrontProduct[];
   headerProducts?: StorefrontProduct[];
@@ -43,12 +41,6 @@ const categoryProductHeadings: Record<CategorySlug, string> = {
   fragrance: 'Our products',
 };
 
-const categoryHeroTitles: Record<CategorySlug, string> = {
-  skincare: 'Take Care Of Your Performance Every Day.',
-  'personal-care': 'Take Care Of Your Performance Every Day.',
-  fragrance: 'Take Care Of Your Performance Every Day.',
-};
-
 const CategoryShopTemplate: React.FC<CategoryShopTemplateProps> = ({
   category,
   categoryContent,
@@ -57,10 +49,7 @@ const CategoryShopTemplate: React.FC<CategoryShopTemplateProps> = ({
   headerProducts = [],
   medusaError,
 }) => {
-  const heroImage =
-    category === 'fragrance'
-      ? categoryBackgrounds.fragrance
-      : categoryContent.headerImage?.src ?? categoryBackgrounds[category];
+  const heroImage = categoryContent.hero.image?.src ?? categoryBackgrounds[category];
   const featuredProducts =
     headerProducts.length > 0 ? headerProducts : products.slice(0, 3);
 
@@ -68,17 +57,19 @@ const CategoryShopTemplate: React.FC<CategoryShopTemplateProps> = ({
     if (category === 'skincare') {
       return (
         <>
-          <AllSkincareSectionBanners6 />
+          <CategoryImageCardsSection cards={categoryContent.categoryCards} />
           <AllSkincareSectionCustomComponents5 />
         </>
       );
     }
 
     if (category === 'personal-care') {
-      return <AllPersonalCareSectionBanners6 />;
+      return <CategoryImageCardsSection cards={categoryContent.categoryCards} />;
     }
 
-    return <FragranceSectionBanners5 />;
+    return categoryContent.fragranceBanner ? (
+      <FragranceSectionBanners5 content={categoryContent.fragranceBanner} />
+    ) : null;
   };
 
   const renderFooter = () =>
@@ -89,7 +80,7 @@ const CategoryShopTemplate: React.FC<CategoryShopTemplateProps> = ({
     );
 
   const renderSection = (
-    section: CategoryPageContent['sections'][number]['section'],
+    section: 'navigation' | 'hero' | 'benefits' | 'products' | 'editorial' | 'footer',
   ) => {
     switch (section) {
       case 'navigation':
@@ -99,8 +90,9 @@ const CategoryShopTemplate: React.FC<CategoryShopTemplateProps> = ({
           <AllSkincareSectionHeaders1
             backgroundImage={heroImage}
             primaryHref={`#${category}-products`}
+            primaryLabel={categoryContent.hero.ctaLabel}
             products={featuredProducts}
-            title={categoryHeroTitles[category]}
+            title={categoryContent.hero.title}
           />
         );
       case 'benefits':
@@ -128,8 +120,6 @@ const CategoryShopTemplate: React.FC<CategoryShopTemplateProps> = ({
             </div>
           </section>
         );
-      case 'video':
-        return <CategoryVideoSection content={categoryContent} />;
       case 'editorial':
         return renderEditorial();
       case 'footer':
@@ -151,13 +141,11 @@ const CategoryShopTemplate: React.FC<CategoryShopTemplateProps> = ({
         />
       </Head>
       <AllSkincareSectionCustomComponents3 />
-      {categoryContent.sections
-        .filter((section) => section.isEnabled)
-        .map((section, index) => (
-          <React.Fragment key={`${section.section}-${index}`}>
-            {renderSection(section.section)}
-          </React.Fragment>
-        ))}
+      {(['navigation', 'hero', 'benefits', 'products', 'editorial', 'footer'] as const).map(
+        (section) => (
+          <React.Fragment key={section}>{renderSection(section)}</React.Fragment>
+        ),
+      )}
     </>
   );
 };

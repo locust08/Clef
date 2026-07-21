@@ -172,7 +172,6 @@ export const retrieveOrderServer = async (
       },
     )
     lastStatus = response.status
-    console.info(`[orders] lookup status=${response.status} auth=${hasCustomerAccess ? 'present' : 'absent'}`)
 
     if (response.ok) {
       const body = (await response.json()) as { order?: MedusaOrder }
@@ -222,8 +221,6 @@ export const listCustomerOrdersServer = async (
     cache: 'no-store',
     headers: getHeaders(input.authToken),
   })
-  console.info(`[orders] history status=${response.status} auth=present`)
-
   if (!response.ok) {
     throw new OrderAccessError(await readError(response), response.status)
   }

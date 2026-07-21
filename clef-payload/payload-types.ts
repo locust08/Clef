@@ -93,11 +93,13 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     homepage: Homepage;
+    'all-products-pages': AllProductsPage;
     'video-section': VideoSection;
     footer: Footer;
   };
   globalsSelect: {
     homepage: HomepageSelect<false> | HomepageSelect<true>;
+    'all-products-pages': AllProductsPagesSelect<false> | AllProductsPagesSelect<true>;
     'video-section': VideoSectionSelect<false> | VideoSectionSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
   };
@@ -579,6 +581,76 @@ export interface Homepage {
   createdAt?: string | null;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "all-products-pages".
+ */
+export interface AllProductsPage {
+  id: number;
+  skincare: {
+    heroTitle: string;
+    heroImage?: (number | null) | Media;
+    /**
+     * The button always scrolls to the Medusa product section. Its destination is not editable.
+     */
+    heroCtaLabel: string;
+    /**
+     * Edit the four existing category cards. Their order controls their position in the current mosaic layout.
+     */
+    categoryCards?:
+      | {
+          title: string;
+          image?: (number | null) | Media;
+          /**
+           * Use a storefront path such as /shop/skincare/anti-aging.
+           */
+          href: string;
+          badgeLabel?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  personalCare: {
+    heroTitle: string;
+    heroImage?: (number | null) | Media;
+    /**
+     * The button always scrolls to the Medusa product section. Its destination is not editable.
+     */
+    heroCtaLabel: string;
+    /**
+     * Edit the four existing category cards. Their order controls their position in the current mosaic layout.
+     */
+    categoryCards?:
+      | {
+          title: string;
+          image?: (number | null) | Media;
+          /**
+           * Use a storefront path such as /shop/skincare/anti-aging.
+           */
+          href: string;
+          badgeLabel?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  fragrance: {
+    heroTitle: string;
+    heroImage?: (number | null) | Media;
+    /**
+     * The button always scrolls to the Medusa product section. Its destination is not editable.
+     */
+    heroCtaLabel: string;
+    bannerEyebrow: string;
+    bannerTitle: string;
+    bannerDescription: string;
+    /**
+     * Paste a YouTube watch, share, or embed URL. The storefront converts it to an embeddable URL.
+     */
+    bannerVideoUrl: string;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Manual video entries only. Do not connect this content to official social platform APIs. Frontend rendering should use the first active video per platform.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -701,6 +773,58 @@ export interface HomepageSelect<T extends boolean = true> {
         isActive?: T;
         displayOrder?: T;
         id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "all-products-pages_select".
+ */
+export interface AllProductsPagesSelect<T extends boolean = true> {
+  skincare?:
+    | T
+    | {
+        heroTitle?: T;
+        heroImage?: T;
+        heroCtaLabel?: T;
+        categoryCards?:
+          | T
+          | {
+              title?: T;
+              image?: T;
+              href?: T;
+              badgeLabel?: T;
+              id?: T;
+            };
+      };
+  personalCare?:
+    | T
+    | {
+        heroTitle?: T;
+        heroImage?: T;
+        heroCtaLabel?: T;
+        categoryCards?:
+          | T
+          | {
+              title?: T;
+              image?: T;
+              href?: T;
+              badgeLabel?: T;
+              id?: T;
+            };
+      };
+  fragrance?:
+    | T
+    | {
+        heroTitle?: T;
+        heroImage?: T;
+        heroCtaLabel?: T;
+        bannerEyebrow?: T;
+        bannerTitle?: T;
+        bannerDescription?: T;
+        bannerVideoUrl?: T;
       };
   updatedAt?: T;
   createdAt?: T;

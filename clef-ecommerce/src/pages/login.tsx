@@ -7,7 +7,7 @@ import LoginSectionSignIn4 from '../components/sign-in/LoginSectionSignIn4';
 import LoginSectionFooters5 from '../components/footers/LoginSectionFooters5';
 
 const Login: React.FC = () => {
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [authView, setAuthView] = useState<'login' | 'register' | 'forgot'>('login');
 
   useEffect(() => {
     // Load custom component scripts after React components are mounted
@@ -30,10 +30,15 @@ const Login: React.FC = () => {
         />
       </Head>
       <LoginSectionCustomComponents2 />
-      {showForgotPassword ? (
-        <LoginSectionSignIn4 onBackToLogin={() => setShowForgotPassword(false)} />
+      {authView === 'forgot' ? (
+        <LoginSectionSignIn4 onBackToLogin={() => setAuthView('login')} />
       ) : (
-        <LoginSectionSignIn1 onForgotPassword={() => setShowForgotPassword(true)} />
+        <LoginSectionSignIn1
+          mode={authView}
+          onBackToLogin={() => setAuthView('login')}
+          onForgotPassword={() => setAuthView('forgot')}
+          onRegister={() => setAuthView('register')}
+        />
       )}
       <LoginSectionFooters5 />
     </>

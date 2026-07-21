@@ -11,11 +11,19 @@ type StoreRegion = {
 
 let cachedRegionId: string | null = null;
 
-export const getMedusaBackendUrl = () =>
-  (process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || 'http://localhost:9000').replace(
-    /\/$/,
-    '',
-  );
+export const getMedusaBackendUrl = () => {
+  const configuredUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL?.trim();
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, '');
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return 'http://localhost:9000';
+  }
+
+  throw new Error('NEXT_PUBLIC_MEDUSA_BACKEND_URL is required in production.');
+};
 
 export const getMedusaPublishableKey = () =>
   process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ?? '';

@@ -9,6 +9,7 @@ type AllSkincareSectionHeaders1Props = {
   title?: string;
   products?: StorefrontProduct[];
   primaryHref?: string;
+  primaryLabel?: string;
 };
 
 const AllSkincareSectionHeaders1: React.FC<AllSkincareSectionHeaders1Props> = ({
@@ -16,6 +17,7 @@ const AllSkincareSectionHeaders1: React.FC<AllSkincareSectionHeaders1Props> = ({
   title = 'Take Care Of Your Performance Every Day.',
   products = [],
   primaryHref = '/shop/skincare',
+  primaryLabel = 'Start Buying',
 }) => {
   const featuredProducts = products
     .filter((product) => product.handle && product.handle !== '#' && product.image)
@@ -47,7 +49,7 @@ const AllSkincareSectionHeaders1: React.FC<AllSkincareSectionHeaders1Props> = ({
                     className="inline-flex h-12 min-w-[150px] items-center justify-center rounded bg-[#fcfcfc] px-6 text-sm font-bold text-[#945600] shadow-sm ring-1 ring-black/5 transition duration-200 hover:bg-white hover:text-[#7c4800] focus:outline-none focus:ring-2 focus:ring-[#945600] focus:ring-offset-2 focus:ring-offset-white"
                     href={primaryHref}
                   >
-                    Start Buying
+                    {primaryLabel}
                   </a>
                 </div>
               </div>
