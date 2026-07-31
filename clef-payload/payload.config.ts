@@ -19,6 +19,7 @@ import { Footer } from './src/payload/globals/Footer'
 import { AllProductsPages } from './src/payload/globals/AllProductsPages'
 import { Homepage } from './src/payload/globals/HomepageGlobal'
 import { VideoSection } from './src/payload/globals/VideoSection'
+import { livePreviewURL } from './src/payload/preview'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -32,9 +33,20 @@ const rawConfiguredServerURL =
   process.env.NEXT_PUBLIC_SERVER_URL?.trim()
 const configuredServerURL = rawConfiguredServerURL || 'http://localhost:3001'
 const payloadSecret = process.env.PAYLOAD_SECRET?.trim()
+const previewSecret = process.env.PREVIEW_SECRET?.trim()
+const storefrontURL = process.env.STOREFRONT_URL?.trim()
+const payloadAdminOrigin = process.env.PAYLOAD_ADMIN_ORIGIN?.trim()
 
 if (isProduction && (!payloadSecret || payloadSecret.length < 32)) {
   throw new Error('PAYLOAD_SECRET of at least 32 characters is required in production')
+}
+
+if (isProduction && (!previewSecret || previewSecret.length < 32)) {
+  throw new Error('PREVIEW_SECRET of at least 32 characters is required in production')
+}
+
+if (isProduction && (!storefrontURL || !payloadAdminOrigin)) {
+  throw new Error('STOREFRONT_URL and PAYLOAD_ADMIN_ORIGIN are required in production')
 }
 
 if (isProduction && !rawConfiguredServerURL) {
@@ -59,8 +71,11 @@ if (
 }
 
 const serverOrigin = serverURL.origin
-const configuredAllowedOrigins =
-  process.env.PAYLOAD_ALLOWED_ORIGINS?.split(',')
+const configuredAllowedOrigins = [
+  ...(process.env.PAYLOAD_ALLOWED_ORIGINS?.split(',') ?? []),
+  ...(storefrontURL ? [storefrontURL] : []),
+  ...(payloadAdminOrigin ? [payloadAdminOrigin] : []),
+]
     .map((value) => value.trim())
     .filter(Boolean)
     .map((value) => {
@@ -77,7 +92,7 @@ const configuredAllowedOrigins =
       }
 
       return origin.origin
-    }) ?? []
+    })
 const trustedOrigins = isProduction
   ? Array.from(new Set([serverOrigin, ...configuredAllowedOrigins]))
   : Array.from(
@@ -117,6 +132,16 @@ const imageProcessor = isCloudflareWorker ? undefined : (await import('sharp')).
 export default buildConfig({
   admin: {
     user: Users.slug,
+    livePreview: {
+      collections: [CategoryPages.slug, ClefEditArticles.slug],
+      globals: [Homepage.slug, AllProductsPages.slug, VideoSection.slug, Footer.slug],
+      url: livePreviewURL,
+      breakpoints: [
+        { name: 'mobile', label: 'Mobile', width: 390, height: 844 },
+        { name: 'tablet', label: 'Tablet', width: 768, height: 1024 },
+        { name: 'desktop', label: 'Desktop', width: 1440, height: 900 },
+      ],
+    },
     importMap: {
       baseDir: path.resolve(dirname, 'src/app/(payload)'),
       importMapFile: path.resolve(dirname, 'src/app/(payload)/admin/importMap.js'),
@@ -159,6 +184,9 @@ function getCloudflareContextFromWrangler(): Promise<CloudflareContext> {
         configPath: path.resolve(dirname, 'wrangler.jsonc'),
         envFiles: [],
         environment: process.env.CLOUDFLARE_ENV,
+        persist: process.env.PAYLOAD_WRANGLER_PERSIST_PATH
+          ? { path: path.resolve(process.env.PAYLOAD_WRANGLER_PERSIST_PATH) }
+          : true,
         remoteBindings: isProduction,
       } satisfies GetPlatformProxyOptions)
 

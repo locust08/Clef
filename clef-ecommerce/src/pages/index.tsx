@@ -17,6 +17,7 @@ import {
 import {
   getFooterContent,
   getHomepageContent,
+  getVideoSectionContent,
   type FooterContent,
   type HomepageContent,
   type VideoSectionContent,
@@ -28,6 +29,7 @@ type IndexProps = {
   homepageContent: HomepageContent;
   newLaunchProducts: StorefrontProduct[];
   videoSectionContent: VideoSectionContent;
+  previewActive: boolean;
 };
 
 const Index: React.FC<IndexProps> = ({
@@ -117,21 +119,21 @@ const getProductsByPayloadHandles = async (handles: string[]) => {
 };
 
 export const getServerSideProps: GetServerSideProps<IndexProps> = async ({
+  preview,
   res,
 }) => {
   res.setHeader(
     'Cache-Control',
-    'public, s-maxage=30, stale-while-revalidate=60',
+    preview
+      ? 'private, no-store, max-age=0'
+      : 'public, s-maxage=30, stale-while-revalidate=60',
   );
 
-  const [homepageContent, footerContent] = await Promise.all([
-    getHomepageContent(),
-    getFooterContent(),
+  const [homepageContent, footerContent, videoSectionContent] = await Promise.all([
+    getHomepageContent(preview === true),
+    getFooterContent(preview === true),
+    getVideoSectionContent(preview === true),
   ]);
-  const videoSectionContent: VideoSectionContent = {
-    sectionTitle: 'CLEF on Social',
-    videos: homepageContent.homepageVideos,
-  };
 
   let bestSellerProducts: StorefrontProduct[] = [];
   let newLaunchProducts: StorefrontProduct[] = [];
@@ -161,6 +163,7 @@ export const getServerSideProps: GetServerSideProps<IndexProps> = async ({
       footerContent,
       homepageContent,
       newLaunchProducts,
+      previewActive: preview === true,
       videoSectionContent,
     },
   };

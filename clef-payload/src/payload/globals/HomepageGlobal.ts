@@ -1,5 +1,11 @@
 import type { GlobalConfig } from 'payload'
 
+import {
+  globalPreview,
+  globalVersions,
+  publishedGlobalOrAuthenticated,
+} from '../preview'
+
 const homepageVideoPlatformOptions = [
   { label: 'TikTok', value: 'tiktok' },
   { label: 'Instagram', value: 'instagram' },
@@ -10,8 +16,12 @@ export const Homepage: GlobalConfig = {
   slug: 'homepage',
   label: 'Homepage',
   access: {
-    read: () => true,
+    read: publishedGlobalOrAuthenticated,
   },
+  admin: {
+    preview: globalPreview('/'),
+  },
+  versions: globalVersions,
   fields: [
     { name: 'heroTitle', type: 'text' },
     { name: 'heroSubtitle', type: 'textarea' },

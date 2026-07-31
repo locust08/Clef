@@ -1,5 +1,11 @@
 import type { GlobalConfig } from 'payload'
 
+import {
+  globalPreview,
+  globalVersions,
+  publishedGlobalOrAuthenticated,
+} from '../preview'
+
 const platformOptions = [
   {
     label: 'TikTok',
@@ -19,8 +25,13 @@ export const Footer: GlobalConfig = {
   slug: 'footer',
   label: 'Footer',
   access: {
-    read: () => true,
+    read: publishedGlobalOrAuthenticated,
   },
+  admin: {
+    description: 'The canonical Footer preview is the Homepage.',
+    preview: globalPreview('/'),
+  },
+  versions: globalVersions,
   fields: [
     {
       name: 'logo',

@@ -1,5 +1,11 @@
 import type { CollectionConfig } from 'payload'
 
+import {
+  collectionPreview,
+  collectionVersions,
+  publishedOrAuthenticated,
+} from '../preview'
+
 const parentCategoryOptions = [
   {
     label: 'Skincare',
@@ -18,15 +24,22 @@ const parentCategoryOptions = [
 export const CategoryPages: CollectionConfig = {
   slug: 'category-pages',
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
   },
   labels: {
     singular: 'Category Page',
     plural: 'Category Pages',
   },
   admin: {
+    preview: collectionPreview((doc) => {
+      const parent =
+        typeof doc.parentCategory === 'string' ? doc.parentCategory : ''
+      const slug = typeof doc.slug === 'string' ? doc.slug : ''
+      return parent && slug ? `/shop/${parent}/${slug}` : null
+    }),
     useAsTitle: 'title',
   },
+  versions: collectionVersions,
   fields: [
     {
       name: 'title',

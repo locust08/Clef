@@ -1,5 +1,8 @@
 # Clef Project
 
+Payload Draft, Preview, Live Preview, migration, deployment, and rollback
+operations are documented in [docs/PAYLOAD_PREVIEW.md](docs/PAYLOAD_PREVIEW.md).
+
 Parent folder for the three Clef apps. Keep each app installed and run from its own folder.
 
 ## Local Apps

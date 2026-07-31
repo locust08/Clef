@@ -24,6 +24,18 @@ const getRemoteImagePattern = (value) => {
 const payloadImagePattern = getRemoteImagePattern(
   process.env.NEXT_PUBLIC_PAYLOAD_URL,
 )
+const payloadAdminOrigin = (() => {
+  const configured =
+    process.env.PAYLOAD_ADMIN_ORIGIN || process.env.NEXT_PUBLIC_PAYLOAD_URL
+
+  if (!configured) return isDevelopment ? 'http://localhost:3001' : null
+
+  try {
+    return new URL(configured).origin
+  } catch {
+    throw new Error('PAYLOAD_ADMIN_ORIGIN must be a valid URL origin')
+  }
+})()
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -69,6 +81,10 @@ const nextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          {
+            key: 'Content-Security-Policy',
+            value: `frame-ancestors 'self'${payloadAdminOrigin ? ` ${payloadAdminOrigin}` : ''}`,
+          },
         ],
       },
     ]

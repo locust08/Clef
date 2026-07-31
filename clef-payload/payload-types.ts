@@ -211,6 +211,7 @@ export interface CategoryPage {
   isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -252,6 +253,7 @@ export interface ClefEditArticle {
   isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -407,6 +409,7 @@ export interface CategoryPagesSelect<T extends boolean = true> {
   isActive?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -444,6 +447,7 @@ export interface ClefEditArticlesSelect<T extends boolean = true> {
   isActive?: T;
   updatedAt?: T;
   createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -577,10 +581,13 @@ export interface Homepage {
         id?: string | null;
       }[]
     | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
 /**
+ * Preview opens the canonical Skincare page. The Personal Care and Fragrance tabs render at /all-personal-care and /fragrance.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "all-products-pages".
  */
@@ -647,11 +654,12 @@ export interface AllProductsPage {
      */
     bannerVideoUrl: string;
   };
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
 /**
- * Manual video entries only. Do not connect this content to official social platform APIs. Frontend rendering should use the first active video per platform.
+ * Manual video entries only. Do not connect this content to official social platform APIs. The canonical preview is the Homepage.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "video-section".
@@ -674,10 +682,13 @@ export interface VideoSection {
         id?: string | null;
       }[]
     | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
 /**
+ * The canonical Footer preview is the Homepage.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer".
  */
@@ -701,6 +712,7 @@ export interface Footer {
       }[]
     | null;
   copyrightText?: string | null;
+  _status?: ('draft' | 'published') | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -774,6 +786,7 @@ export interface HomepageSelect<T extends boolean = true> {
         displayOrder?: T;
         id?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -826,6 +839,7 @@ export interface AllProductsPagesSelect<T extends boolean = true> {
         bannerDescription?: T;
         bannerVideoUrl?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -848,6 +862,7 @@ export interface VideoSectionSelect<T extends boolean = true> {
         displayOrder?: T;
         id?: T;
       };
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -875,6 +890,7 @@ export interface FooterSelect<T extends boolean = true> {
         id?: T;
       };
   copyrightText?: T;
+  _status?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
