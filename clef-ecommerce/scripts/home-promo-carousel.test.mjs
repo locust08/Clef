@@ -48,6 +48,34 @@ for (const expected of [
   }
 }
 
+for (const previousDesignMarker of ['h-[236px]', 'object-cover']) {
+  if (!source.includes(previousDesignMarker)) {
+    throw new Error(
+      `Expected previous promotion banner design marker: ${previousDesignMarker}`,
+    );
+  }
+}
+
+if (source.includes('style={{ aspectRatio }}')) {
+  throw new Error('Promotion banners should not use image-driven card heights.');
+}
+
+for (const cmsMarker of [
+  'content.promotionBanners',
+  "cmsPromotionCards.length === 2",
+  "promotionSource",
+  "'payload'",
+  "'controlled-fallback'",
+]) {
+  if (!source.includes(cmsMarker)) {
+    throw new Error(`Expected Payload promotion carousel marker: ${cmsMarker}`);
+  }
+}
+
+if (!source.includes('<PromoCarouselCard slides={card.slides} />')) {
+  throw new Error('Expected the two-card renderer to receive Payload or fallback slides.');
+}
+
 const leftPairPattern =
   /leftPromoSlides[\s\S]*home-promo-facial-serums\.png[\s\S]*home-promo-hydrating-masks\.png/;
 const rightPairPattern =

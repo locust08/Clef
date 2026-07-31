@@ -5,7 +5,6 @@ import type {
 } from '../../data/category-config';
 import type { StorefrontProduct } from '../../lib/medusa-products';
 import type { CategoryPageContent } from '../../lib/cms';
-import ProductGrid from '../product/ProductGrid';
 import ProductHeroCarousel from '../product/ProductHeroCarousel';
 import ProductTrustBenefitsStrip from '../product/ProductTrustBenefitsStrip';
 
@@ -72,26 +71,13 @@ const BySkincareSectionHeaders3: React.FC<BySkincareSectionHeaders3Props> = ({
       />
       <ProductTrustBenefitsStrip />
 
-      <div className="container mx-auto px-4">
-        <div className="pb-4 pt-12">
-          <p className="mb-3 text-sm font-bold uppercase tracking-widest text-purple-500">
-            {categoryConfig.displayName}
-          </p>
-          <h2 className="mb-8 font-heading text-3xl font-semibold text-rhino-700 md:text-4xl">
-            {subcategoryConfig.displayName}
-          </h2>
-          {medusaError ? (
-            <div className="rounded-xl border border-red-100 bg-white p-8 text-center">
-              <h2 className="mb-2 font-heading text-2xl font-semibold text-rhino-700">
-                Unable to load products.
-              </h2>
-              <p className="text-sm text-rhino-400">{medusaError}</p>
-            </div>
-          ) : (
-            <ProductGrid products={products} emptyMessage="No products found." />
-          )}
+      {medusaError ? (
+        <div className="container mx-auto px-4 pt-8">
+          <div className="border-y border-red-100 bg-white px-6 py-4 text-center">
+            <p className="text-sm text-rhino-500">{medusaError}</p>
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 };

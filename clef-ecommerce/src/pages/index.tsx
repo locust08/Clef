@@ -37,6 +37,44 @@ const Index: React.FC<IndexProps> = ({
   newLaunchProducts,
   videoSectionContent,
 }) => {
+  const renderSection = (
+    section: HomepageContent['sections'][number]['section'],
+  ) => {
+    switch (section) {
+      case 'hero':
+        return <IndexSectionHeaders1 content={homepageContent} />;
+      case 'categories':
+        return <IndexSectionBanners2 />;
+      case 'best-sellers':
+        return (
+          <IndexSectionProductBlocks3
+            hideWhenEmpty
+            products={bestSellerProducts}
+            title={homepageContent.bestSellerTitle}
+          />
+        );
+      case 'new-launch':
+        return (
+          <IndexSectionProductBlocks3
+            badgeLabel="New"
+            ctaHref="/products"
+            eyebrow="CLEF arrivals"
+            hideWhenEmpty
+            products={newLaunchProducts}
+            title={homepageContent.newLaunchTitle}
+          />
+        );
+      case 'social':
+        return <IndexSectionInstagramPhotos5 content={videoSectionContent} />;
+      case 'testimonials':
+        return (
+          <IndexSectionTestimonials4 reviews={homepageContent.customerReviews} />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       <Head>
@@ -49,22 +87,13 @@ const Index: React.FC<IndexProps> = ({
         />
       </Head>
       <IndexSectionCustomComponents7 />
-      <IndexSectionHeaders1 content={homepageContent} />
-      <IndexSectionBanners2 />
-      <IndexSectionProductBlocks3
-        products={bestSellerProducts}
-        title={homepageContent.bestSellerTitle}
-      />
-      <IndexSectionProductBlocks3
-        badgeLabel="New"
-        ctaHref="/products"
-        eyebrow="CLEF arrivals"
-        hideWhenEmpty
-        products={newLaunchProducts}
-        title={homepageContent.newLaunchTitle}
-      />
-      <IndexSectionInstagramPhotos5 content={videoSectionContent} />
-      <IndexSectionTestimonials4 reviews={homepageContent.customerReviews} />
+      {homepageContent.sections
+        .filter((section) => section.isEnabled)
+        .map((section, index) => (
+          <React.Fragment key={`${section.section}-${index}`}>
+            {renderSection(section.section)}
+          </React.Fragment>
+        ))}
       <IndexSectionFooters6 content={footerContent} />
     </>
   );
@@ -87,7 +116,14 @@ const getProductsByPayloadHandles = async (handles: string[]) => {
     .filter((product): product is StorefrontProduct => Boolean(product));
 };
 
-export const getServerSideProps: GetServerSideProps<IndexProps> = async () => {
+export const getServerSideProps: GetServerSideProps<IndexProps> = async ({
+  res,
+}) => {
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=30, stale-while-revalidate=60',
+  );
+
   const [homepageContent, footerContent] = await Promise.all([
     getHomepageContent(),
     getFooterContent(),
@@ -101,11 +137,15 @@ export const getServerSideProps: GetServerSideProps<IndexProps> = async () => {
   let newLaunchProducts: StorefrontProduct[] = [];
 
   try {
-    bestSellerProducts = homepageContent.bestSellerMedusaProductHandles.length
-      ? await getProductsByPayloadHandles(
-          homepageContent.bestSellerMedusaProductHandles,
-        )
-      : await getHomepageBestSellers();
+    if (homepageContent.bestSellerMedusaProductHandles.length) {
+      bestSellerProducts = await getProductsByPayloadHandles(
+        homepageContent.bestSellerMedusaProductHandles,
+      );
+    }
+
+    if (!bestSellerProducts.length) {
+      bestSellerProducts = await getHomepageBestSellers();
+    }
     newLaunchProducts = await getProductsByPayloadHandles(
       homepageContent.newLaunchMedusaProductHandles,
     );

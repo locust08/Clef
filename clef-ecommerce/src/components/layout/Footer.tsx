@@ -16,18 +16,71 @@ const fallbackFooterContent: FooterContent = {
   description:
     'Sign Up to our newsletter and receive 10% off your first order!',
   socialLinks: [
-    { platform: 'facebook', url: '#', label: 'Facebook' },
-    { platform: 'instagram', url: '#', label: 'Instagram' },
+    { platform: 'facebook', url: '/clef-info', label: 'Facebook' },
+    { platform: 'instagram', url: '/clef-edit', label: 'Instagram' },
   ],
   quickLinks: [
-    { label: 'Privacy Policy', href: '#' },
-    { label: 'Terms & Conditions', href: '#' },
-    { label: 'Blog', href: '#' },
+    { label: 'Privacy Policy', href: '/clef-info' },
+    { label: 'Terms & Conditions', href: '/clef-info' },
+    { label: 'Blog', href: '/clef-edit' },
   ],
   copyrightText: 'Copyright 2026. All Rights reserved by CLEF.',
 };
 
-const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => (
+const safeHref = (href: string | undefined, fallback: string) =>
+  href && href.trim() && href !== '#' ? href : fallback;
+
+const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => {
+  const [email, setEmail] = React.useState('');
+  const [message, setMessage] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleSubscribe = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      setMessage('Enter a valid email address.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch('/api/leads', {
+        body: JSON.stringify({
+          email: trimmedEmail,
+          source: 'footer-newsletter',
+          type: 'newsletter',
+        }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      });
+      const result = await response.json() as {
+        accepted?: boolean;
+        error?: string;
+        warnings?: string[];
+      };
+
+      if (!response.ok || !result.accepted) {
+        throw new Error(result.error || 'Unable to submit your email right now.');
+      }
+
+      setEmail('');
+      setMessage(
+        result.warnings?.length
+          ? 'Thanks. Your signup was received, but our team notification is temporarily unavailable.'
+          : 'Thanks. Your signup was received by CLEF.',
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to submit your email right now.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
   <footer className="relative bg-[#E9E4D0] overflow-hidden">
     <div className="border-b border-gray-900 border-opacity-10">
       <div className="container px-4 mx-auto">
@@ -37,24 +90,28 @@ const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => (
               <h1 className="text-purple-700 text-2xl font-semibold leading-8 mb-8 max-w-md">
                 {content.description}
               </h1>
-              <div className="sm:flex gap-4 max-w-md mb-9">
+              <form className="mb-9 max-w-md gap-4 sm:flex" onSubmit={handleSubscribe}>
                 <input
                   className="block w-full mb-4 sm:mb-0 rounded-sm border border-coolGray-200 py-3 px-4 text-coolGray-500 outline-none"
-                  type="text"
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder="Type your e-mail"
+                  type="email"
+                  value={email}
                 />
-                <a
+                <button
                   className="inline-flex w-full sm:w-auto items-center justify-center bg-purple-500 rounded-sm py-3 px-6 text-white text-center hover:bg-purple-600 transition duration-200 clef-button-primary"
-                  href="#"
+                  type="submit"
+                  disabled={isSubmitting}
                 >
-                  Subscribe
-                </a>
-              </div>
+                  {isSubmitting ? 'Submitting...' : 'Subscribe'}
+                </button>
+              </form>
+              {message && <p className="mb-6 text-sm text-rhino-600">{message}</p>}
               <div className="flex flex-wrap sm:flex-nowrap gap-6">
                 {content.socialLinks.map((link) => (
                   <a
                     className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-orange-300 hover:bg-orange-400 transition duration-200 clef-link-highlight"
-                    href={link.url}
+                    href={safeHref(link.url, '/clef-info')}
                     aria-label={link.label}
                     key={`${link.platform}-${link.url}`}
                   >
@@ -76,7 +133,7 @@ const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => (
                   <ul className="flex flex-col text-sm text-gray-700">
                     {content.quickLinks.map((link) => (
                       <li className="mb-3" key={`${link.label}-${link.href}`}>
-                        <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href={link.href}>
+                        <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href={safeHref(link.href, '/clef-info')}>
                           {link.label}
                         </a>
                       </li>
@@ -89,32 +146,32 @@ const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => (
                   </p>
                   <ul className="flex flex-col text-sm text-gray-700">
                     <li className="mb-3">
-                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="#">
+                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="/search">
                         Search Terms
                       </a>
                     </li>
                     <li className="mb-3">
-                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="#">
+                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="/search">
                         Advanced Search
                       </a>
                     </li>
                     <li className="mb-3">
-                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="#">
+                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="/account/history">
                         Orders and Returns
                       </a>
                     </li>
                     <li className="mb-3">
-                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="#">
+                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="/clef-info">
                         Contact Us
                       </a>
                     </li>
                     <li className="mb-3">
-                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="#">
+                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="/clef-info">
                         Theme FAQs
                       </a>
                     </li>
                     <li>
-                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="#">
+                      <a className="inline-block text-gray-800 hover:opacity-70 transition duration-200 clef-link-highlight" href="/shop/skincare">
                         Store Locations
                       </a>
                     </li>
@@ -131,7 +188,7 @@ const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => (
         <div className="flex items-center justify-between gap-8 flex-wrap">
           <div className="flex flex-wrap gap-8">
             {content.quickLinks.slice(0, 3).map((link) => (
-              <a href={link.href} key={`bottom-${link.label}-${link.href}`}>
+              <a href={safeHref(link.href, '/clef-info')} key={`bottom-${link.label}-${link.href}`}>
                 <span className="text-gray-800 text-sm hover:text-opacity-70 transition duration-20">{link.label}</span>
               </a>
             ))}
@@ -160,7 +217,8 @@ const Footer: React.FC<FooterProps> = ({ content = fallbackFooterContent }) => (
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;
 

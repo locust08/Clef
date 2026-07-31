@@ -18,13 +18,33 @@ function loadTsxComponent(componentPath) {
   });
 
   const module = { exports: {} };
+  const testReact = {
+    ...React,
+    useState: (initialValue) => [initialValue, () => {}],
+  };
 
   vm.runInNewContext(outputText, {
     exports: module.exports,
     module,
     require: (id) => {
       if (id === 'react') {
-        return React;
+        return testReact;
+      }
+
+      if (id === 'next/router') {
+        return {
+          useRouter: () => ({ query: {} }),
+        };
+      }
+
+      if (id === '../../context/CustomerContext') {
+        return {
+          useCustomer: () => ({
+            customerError: null,
+            login: async () => {},
+            register: async () => {},
+          }),
+        };
       }
 
       return require(id);
@@ -74,11 +94,39 @@ function findElement(root, predicate) {
 
 const LoginSectionSignIn1 = loadTsxComponent('src/components/sign-in/LoginSectionSignIn1.tsx');
 let forgotPasswordClicked = false;
+let registerClicked = false;
+let loginBackClicked = false;
 const loginForm = LoginSectionSignIn1({
+  mode: 'login',
+  onBackToLogin: () => {
+    loginBackClicked = true;
+  },
   onForgotPassword: () => {
     forgotPasswordClicked = true;
   },
+  onRegister: () => {
+    registerClicked = true;
+  },
 });
+
+const registerButton = findElement(
+  loginForm,
+  (node) => node.type === 'button' && getText(node).trim() === 'Register',
+);
+
+if (!registerButton || registerButton.props.type !== 'button') {
+  throw new Error('Expected login form to render a Register button with type="button".');
+}
+
+registerButton.props.onClick();
+
+if (!registerClicked) {
+  throw new Error('Expected clicking Register to trigger onRegister.');
+}
+
+if (findElement(loginForm, (node) => node.props?.id === 'firstName')) {
+  throw new Error('Register fields must be hidden in login mode.');
+}
 
 const forgotPasswordButton = findElement(
   loginForm,
@@ -101,6 +149,38 @@ forgotPasswordButton.props.onClick();
 
 if (!forgotPasswordClicked) {
   throw new Error('Expected clicking Forgot password? to trigger onForgotPassword.');
+}
+
+const registerForm = LoginSectionSignIn1({
+  mode: 'register',
+  onBackToLogin: () => {
+    loginBackClicked = true;
+  },
+  onForgotPassword: () => {},
+  onRegister: () => {},
+});
+
+if (!findElement(registerForm, (node) => node.props?.id === 'firstName')) {
+  throw new Error('Expected register fields to render in register mode.');
+}
+
+if (findElement(registerForm, (node) => node.props?.id === 'loginEmail')) {
+  throw new Error('Login fields must be hidden in register mode.');
+}
+
+const backToLoginFromRegister = findElement(
+  registerForm,
+  (node) => node.type === 'button' && getText(node).trim() === 'Back to Login',
+);
+
+if (!backToLoginFromRegister || backToLoginFromRegister.props.type !== 'button') {
+  throw new Error('Expected register form to render a Back to Login button with type="button".');
+}
+
+backToLoginFromRegister.props.onClick();
+
+if (!loginBackClicked) {
+  throw new Error('Expected Back to Login to trigger onBackToLogin.');
 }
 
 const LoginSectionSignIn4 = loadTsxComponent('src/components/sign-in/LoginSectionSignIn4.tsx');
@@ -138,19 +218,21 @@ const loginPageSource = fs.readFileSync(path.resolve('src/pages/login.tsx'), 'ut
 
 for (const expected of [
   'useState',
-  'showForgotPassword',
-  'setShowForgotPassword(true)',
-  'setShowForgotPassword(false)',
+  "useState<'login' | 'register' | 'forgot'>('login')",
+  "setAuthView('register')",
+  "setAuthView('forgot')",
+  "setAuthView('login')",
   'onForgotPassword',
   'onBackToLogin',
+  'onRegister',
 ]) {
   if (!loginPageSource.includes(expected)) {
     throw new Error(`Expected login page to include ${expected}.`);
   }
 }
 
-if (!loginPageSource.includes('showForgotPassword ?')) {
-  throw new Error('Expected login page to render forgot password section conditionally.');
+if (!loginPageSource.includes("authView === 'forgot'")) {
+  throw new Error('Expected login page to render forgot password view conditionally.');
 }
 
-console.log('Login forgot password flow contract is present.');
+console.log('Login, register, and forgot password flow contract is present.');

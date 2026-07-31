@@ -90,17 +90,17 @@ const IndexSectionTestimonials4: React.FC<IndexSectionTestimonials4Props> = ({
   return (
     <section className="relative bg-white overflow-hidden">
       <div className="px-4 container mx-auto">
-        <div className="py-16">
-          <div className="flex items-center justify-between gap-8 lg:gap-32">
+        <div className="relative mx-auto max-w-6xl py-16 md:px-24">
+          <div className="flex items-center justify-center">
             <button
               aria-label="Show previous customer review"
-              className="hidden md:flex flex-shrink-0 rounded-full w-16 h-16 border-2 border-purple-500 items-center justify-center text-rhino-500 hover:bg-purple-500 hover:text-white transition duration-200 active:scale-95 clef-button-secondary"
+              className="absolute left-4 top-1/2 z-10 hidden h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border-2 border-purple-500 text-rhino-500 transition duration-200 hover:bg-purple-500 hover:text-white active:scale-95 md:flex clef-button-secondary"
               onClick={goToPrevious}
               type="button"
             >
               <ArrowLeftIcon />
             </button>
-            <div className="max-w-4xl w-full mx-auto">
+            <div className="mx-auto w-full max-w-4xl">
               <div className="overflow-hidden">
                 <div
                   className="flex transition-transform duration-500 ease-in-out -m-5"
@@ -114,7 +114,7 @@ const IndexSectionTestimonials4: React.FC<IndexSectionTestimonials4Props> = ({
             </div>
             <button
               aria-label="Show next customer review"
-              className="hidden md:flex flex-shrink-0 rounded-full w-16 h-16 border-2 border-purple-500 items-center justify-center text-rhino-500 hover:bg-purple-500 hover:text-white transition duration-200 active:scale-95 clef-button-secondary"
+              className="absolute right-4 top-1/2 z-10 hidden h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border-2 border-purple-500 text-rhino-500 transition duration-200 hover:bg-purple-500 hover:text-white active:scale-95 md:flex clef-button-secondary"
               onClick={goToNext}
               type="button"
             >

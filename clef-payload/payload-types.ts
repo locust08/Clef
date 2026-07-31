@@ -93,11 +93,13 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     homepage: Homepage;
+    'all-products-pages': AllProductsPage;
     'video-section': VideoSection;
     footer: Footer;
   };
   globalsSelect: {
     homepage: HomepageSelect<false> | HomepageSelect<true>;
+    'all-products-pages': AllProductsPagesSelect<false> | AllProductsPagesSelect<true>;
     'video-section': VideoSectionSelect<false> | VideoSectionSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
   };
@@ -142,6 +144,8 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  _verified?: boolean | null;
+  _verificationToken?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
@@ -194,6 +198,16 @@ export interface CategoryPage {
   videoTitle?: string | null;
   videoUrl?: string | null;
   videoThumbnail?: (number | null) | Media;
+  /**
+   * Add, remove, drag to reorder, or disable sections for this category page.
+   */
+  sections?:
+    | {
+        section: 'navigation' | 'hero' | 'benefits' | 'products' | 'video' | 'editorial' | 'footer';
+        isEnabled?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
@@ -216,6 +230,10 @@ export interface ClefEditArticle {
   description: string;
   questions?:
     | {
+        /**
+         * Medusa product handle. This makes the recommendation open the live product page.
+         */
+        productHandle?: string | null;
         question: string;
         answer: string;
         id?: string | null;
@@ -329,6 +347,8 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  _verified?: T;
+  _verificationToken?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
@@ -377,6 +397,13 @@ export interface CategoryPagesSelect<T extends boolean = true> {
   videoTitle?: T;
   videoUrl?: T;
   videoThumbnail?: T;
+  sections?:
+    | T
+    | {
+        section?: T;
+        isEnabled?: T;
+        id?: T;
+      };
   isActive?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -399,6 +426,7 @@ export interface ClefEditArticlesSelect<T extends boolean = true> {
   questions?:
     | T
     | {
+        productHandle?: T;
         question?: T;
         answer?: T;
         id?: T;
@@ -469,6 +497,9 @@ export interface Homepage {
   heroButtonLabel?: string | null;
   heroButtonHref?: string | null;
   bestSellerTitle?: string | null;
+  /**
+   * Paste the Medusa product handle only, for example clef-ocean-elixir-hydrating-cleanser. Do not include /product/ or a leading slash.
+   */
   bestSellerMedusaProductHandles?:
     | {
         handle: string;
@@ -479,6 +510,18 @@ export interface Homepage {
     | {
         title?: string | null;
         subtitle?: string | null;
+        /**
+         * Add one or more images. Multiple images rotate automatically on the storefront.
+         */
+        images?:
+          | {
+              image: number | Media;
+              id?: string | null;
+            }[]
+          | null;
+        /**
+         * Kept for existing content. It is shown first, followed by any Banner images above.
+         */
         image?: (number | null) | Media;
         href?: string | null;
         isActive?: boolean | null;
@@ -486,9 +529,22 @@ export interface Homepage {
       }[]
     | null;
   newLaunchTitle?: string | null;
+  /**
+   * Paste Medusa product handles only. Products and prices are always loaded live from Medusa.
+   */
   newLaunchMedusaProductHandles?:
     | {
         handle: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Add, remove, drag to reorder, or disable homepage sections. Content for each section is edited in the matching fields on this page.
+   */
+  sections?:
+    | {
+        section: 'hero' | 'categories' | 'best-sellers' | 'new-launch' | 'social' | 'testimonials';
+        isEnabled?: boolean | null;
         id?: string | null;
       }[]
     | null;
@@ -521,6 +577,76 @@ export interface Homepage {
         id?: string | null;
       }[]
     | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "all-products-pages".
+ */
+export interface AllProductsPage {
+  id: number;
+  skincare: {
+    heroTitle: string;
+    heroImage?: (number | null) | Media;
+    /**
+     * The button always scrolls to the Medusa product section. Its destination is not editable.
+     */
+    heroCtaLabel: string;
+    /**
+     * Edit the four existing category cards. Their order controls their position in the current mosaic layout.
+     */
+    categoryCards?:
+      | {
+          title: string;
+          image?: (number | null) | Media;
+          /**
+           * Use a storefront path such as /shop/skincare/anti-aging.
+           */
+          href: string;
+          badgeLabel?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  personalCare: {
+    heroTitle: string;
+    heroImage?: (number | null) | Media;
+    /**
+     * The button always scrolls to the Medusa product section. Its destination is not editable.
+     */
+    heroCtaLabel: string;
+    /**
+     * Edit the four existing category cards. Their order controls their position in the current mosaic layout.
+     */
+    categoryCards?:
+      | {
+          title: string;
+          image?: (number | null) | Media;
+          /**
+           * Use a storefront path such as /shop/skincare/anti-aging.
+           */
+          href: string;
+          badgeLabel?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  fragrance: {
+    heroTitle: string;
+    heroImage?: (number | null) | Media;
+    /**
+     * The button always scrolls to the Medusa product section. Its destination is not editable.
+     */
+    heroCtaLabel: string;
+    bannerEyebrow: string;
+    bannerTitle: string;
+    bannerDescription: string;
+    /**
+     * Paste a YouTube watch, share, or embed URL. The storefront converts it to an embeddable URL.
+     */
+    bannerVideoUrl: string;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -600,6 +726,12 @@ export interface HomepageSelect<T extends boolean = true> {
     | {
         title?: T;
         subtitle?: T;
+        images?:
+          | T
+          | {
+              image?: T;
+              id?: T;
+            };
         image?: T;
         href?: T;
         isActive?: T;
@@ -610,6 +742,13 @@ export interface HomepageSelect<T extends boolean = true> {
     | T
     | {
         handle?: T;
+        id?: T;
+      };
+  sections?:
+    | T
+    | {
+        section?: T;
+        isEnabled?: T;
         id?: T;
       };
   homepageVideos?:
@@ -634,6 +773,58 @@ export interface HomepageSelect<T extends boolean = true> {
         isActive?: T;
         displayOrder?: T;
         id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "all-products-pages_select".
+ */
+export interface AllProductsPagesSelect<T extends boolean = true> {
+  skincare?:
+    | T
+    | {
+        heroTitle?: T;
+        heroImage?: T;
+        heroCtaLabel?: T;
+        categoryCards?:
+          | T
+          | {
+              title?: T;
+              image?: T;
+              href?: T;
+              badgeLabel?: T;
+              id?: T;
+            };
+      };
+  personalCare?:
+    | T
+    | {
+        heroTitle?: T;
+        heroImage?: T;
+        heroCtaLabel?: T;
+        categoryCards?:
+          | T
+          | {
+              title?: T;
+              image?: T;
+              href?: T;
+              badgeLabel?: T;
+              id?: T;
+            };
+      };
+  fragrance?:
+    | T
+    | {
+        heroTitle?: T;
+        heroImage?: T;
+        heroCtaLabel?: T;
+        bannerEyebrow?: T;
+        bannerTitle?: T;
+        bannerDescription?: T;
+        bannerVideoUrl?: T;
       };
   updatedAt?: T;
   createdAt?: T;

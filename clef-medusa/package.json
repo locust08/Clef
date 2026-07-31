@@ -13,6 +13,12 @@
     "test": "turbo test",
     "backend:seed": "turbo seed --filter=@dtc/backend",
     "backend:dev": "turbo dev --filter=@dtc/backend",
+    "container:deploy": "wrangler deploy",
+    "container:list": "wrangler containers list",
+    "container:secrets": "node cloudflare-container/scripts/sync-secrets.mjs",
+    "container:typecheck": "tsc -p cloudflare-container/tsconfig.json --noEmit",
+    "container:validate-r2": "node cloudflare-container/scripts/validate-r2.mjs",
+    "container:migrate-media": "node cloudflare-container/scripts/migrate-medusa-media.mjs",
     "storefront:dev": "npm --prefix ../clef-ecommerce run dev",
     "payload:dev": "npm --prefix ../clef-payload run dev"
   },
@@ -23,17 +29,18 @@
     }
   },
   "devDependencies": {
+    "@cloudflare/containers": "^0.3.7",
+    "@cloudflare/workers-types": "^5.20260715.1",
     "@medusajs/eslint-plugin": "2.16.0",
     "eslint": "^9.39.4",
     "jiti": "^2.7.0",
+    "jose": "^6.2.3",
     "prettier": "^3.2.5",
-    "turbo": "^2.0.14"
+    "turbo": "^2.0.14",
+    "wrangler": "^4.111.0"
   },
   "workspaces": [
     "apps/**",
     "!apps/backend/.medusa/**"
-  ],
-  "overrides": {
-    "ajv": "^8.0.0"
-  }
+  ]
 }

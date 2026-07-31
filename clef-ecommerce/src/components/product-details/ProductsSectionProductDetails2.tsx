@@ -1,6 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
+import { useFavourites } from '../../context/FavouritesContext';
+import { useCart } from '../../context/MockCartContext';
 import type { StorefrontProduct } from '../../lib/medusa-products';
+import ProductGallery from '../product/ProductGallery';
 
 type ProductsSectionProductDetails2Props = {
   product: StorefrontProduct | null;
@@ -13,6 +16,18 @@ const ProductsSectionProductDetails2: React.FC<ProductsSectionProductDetails2Pro
   medusaError = null,
   onAddToCart,
 }) => {
+  const { addMedusaItem } = useCart();
+  const { isFavourite, toggleFavourite } = useFavourites();
+  const [selectedVariantId, setSelectedVariantId] = React.useState(
+    product?.variants[0]?.id ?? '',
+  );
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [actionMessage, setActionMessage] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setSelectedVariantId(product?.variants[0]?.id ?? '');
+  }, [product]);
+
   if (medusaError) {
     return (
       <section className="py-12 md:py-24 lg:py-32">
@@ -41,7 +56,42 @@ const ProductsSectionProductDetails2: React.FC<ProductsSectionProductDetails2Pro
     );
   }
 
-  const galleryImages = product.images.length > 0 ? product.images : [product.image].filter(Boolean);
+  const selectedVariant =
+    product.variants.find((variant) => variant.id === selectedVariantId) ??
+    product.variants[0];
+  const favourited = isFavourite(product.id);
+
+  const handleAddToCart = async () => {
+    if (onAddToCart) {
+      onAddToCart();
+      return;
+    }
+
+    if (!selectedVariant) {
+      setActionMessage('This product is unavailable.');
+      return;
+    }
+
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setActionMessage(null);
+
+    try {
+      await addMedusaItem({
+        product,
+        quantity: 1,
+        variantId: selectedVariant.id,
+      });
+      setActionMessage('Added to cart.');
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : 'Unable to add to cart.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <section className="py-12 md:py-24 lg:py-32">
@@ -63,28 +113,7 @@ const ProductsSectionProductDetails2: React.FC<ProductsSectionProductDetails2Pro
 
           <div className="flex flex-wrap -mx-4">
             <div className="w-full lg:w-1/2 px-4 mb-12 lg:mb-0">
-              <div className="flex -mx-3">
-                {galleryImages.length > 1 && (
-                  <div className="w-32 md:w-40 px-3">
-                    <div className="flex flex-col w-full">
-                      {galleryImages.slice(0, 4).map((image, index) => (
-                        <div className="block opacity-70 mb-3 sm:mb-6" key={`${image}-${index}`}>
-                          <img className="block rounded-xl w-full h-14 sm:h-20 md:h-28 object-cover" src={image} alt={product.name} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="w-full px-3">
-                  <div className="flex h-full min-h-96 items-center justify-center rounded-xl bg-rose-50 p-8">
-                    {product.image ? (
-                      <img className="block max-h-[520px] w-full rounded-xl object-contain" src={product.image} alt={product.name} />
-                    ) : (
-                      <span className="text-sm font-medium text-rhino-400">No image</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <ProductGallery product={product} />
             </div>
 
             <div className="w-full lg:w-1/2 px-4">
@@ -104,9 +133,17 @@ const ProductsSectionProductDetails2: React.FC<ProductsSectionProductDetails2Pro
                     <div className="flex flex-wrap -mx-1 -mb-1">
                       {product.variants.map((variant, index) => (
                         <div className="w-full sm:w-1/2 px-1 mb-1" key={variant.id}>
-                          <div className={`w-full border py-2 px-3 rounded-sm text-center text-sm transition duration-200 ${index === 0 ? 'border-purple-500 text-purple-700' : 'border-coolGray-200 text-coolGray-700'}`}>
+                          <button
+                            className={`w-full rounded-sm border px-3 py-2 text-center text-sm transition duration-200 ${
+                              selectedVariant?.id === variant.id
+                                ? 'border-purple-500 text-purple-700'
+                                : 'border-coolGray-200 text-coolGray-700 hover:border-purple-500 hover:text-purple-700'
+                            }`}
+                            onClick={() => setSelectedVariantId(variant.id)}
+                            type="button"
+                          >
                             {variant.title}
-                          </div>
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -117,21 +154,34 @@ const ProductsSectionProductDetails2: React.FC<ProductsSectionProductDetails2Pro
                 <div className="flex -mx-2 flex-wrap mb-10">
                   <div className="w-full xs:w-5/12 md:w-7/12 px-2 mb-4 xs:mb-0">
                     <button
-                      className="block w-full px-3 py-4 rounded-sm text-center text-white text-sm font-medium bg-purple-500 hover:bg-purple-600 transition duration-200 clef-button-primary"
-                      onClick={onAddToCart}
+                      className="block w-full rounded-sm bg-purple-500 px-3 py-4 text-center text-sm font-medium text-white transition duration-200 hover:bg-purple-600 disabled:cursor-not-allowed disabled:bg-purple-300 clef-button-primary"
+                      disabled={isSubmitting || !selectedVariant}
+                      onClick={() => {
+                        void handleAddToCart();
+                      }}
                       type="button"
                     >
-                      Add to cart
+                      {isSubmitting ? 'Adding...' : selectedVariant ? 'Add to cart' : 'Unavailable'}
                     </button>
                   </div>
                   <div className="w-full xs:w-3/12 md:w-2/12 px-2">
-                    <button className="border border-purple-600 rounded-sm text-purple-500 py-4 px-6 xs:px-1 inline-flex h-full xs:w-full items-center justify-center hover:bg-purple-500 hover:text-white transition duration-200 clef-button-secondary" type="button" aria-label="Add to favourites">
-                      <svg xmlns="http://www.w3.org/2000/svg" width={16} height={17} viewBox="0 0 16 17" fill="none">
+                    <button
+                      className={`inline-flex h-full rounded-sm border border-purple-600 px-6 py-4 text-purple-500 transition duration-200 hover:bg-purple-500 hover:text-white xs:w-full xs:px-1 items-center justify-center clef-button-secondary ${
+                        favourited ? 'bg-purple-500 text-white' : ''
+                      }`}
+                      type="button"
+                      aria-label={favourited ? 'Remove from favourites' : 'Add to favourites'}
+                      onClick={() => {
+                        void toggleFavourite(product.id);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width={16} height={17} viewBox="0 0 16 17" fill={favourited ? 'currentColor' : 'none'}>
                         <path d="M14.1942 3.24105C13.8537 2.90039 13.4494 2.63015 13.0045 2.44578C12.5595 2.2614 12.0826 2.1665 11.6009 2.1665C11.1192 2.1665 10.6423 2.2614 10.1973 2.44578C9.75236 2.63015 9.34807 2.90039 9.00757 3.24105L8.3009 3.94772L7.59423 3.24105C6.90644 2.55326 5.97359 2.16686 5.0009 2.16686C4.02821 2.16686 3.09536 2.55326 2.40757 3.24105C1.71977 3.92885 1.33337 4.8617 1.33337 5.83439C1.33337 6.80708 1.71977 7.73993 2.40757 8.42772L3.11423 9.13439L8.3009 14.3211L13.4876 9.13439L14.1942 8.42772C14.5349 8.08722 14.8051 7.68293 14.9895 7.23796C15.1739 6.79298 15.2688 6.31605 15.2688 5.83439C15.2688 5.35273 15.1739 4.87579 14.9895 4.43082C14.8051 3.98584 14.5349 3.58156 14.1942 3.24105Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </button>
                   </div>
                 </div>
+                {actionMessage && <p className="mb-6 text-sm text-rhino-400">{actionMessage}</p>}
 
                 <div className="border border-coolGray-200 rounded-sm">
                   <div className="py-3 px-6 border-b border-coolGray-200">

@@ -3,7 +3,6 @@ import Image from 'next/image';
 import type {
   CmsImage,
   HomepageContent,
-  HomepagePromotionBanner,
 } from '../../lib/cms';
 
 const AUTO_CHANGE_MS = 4500;
@@ -102,40 +101,6 @@ const PromoCarouselCard: React.FC<PromoCarouselCardProps> = ({ slides }) => {
   );
 };
 
-type CmsPromotionBannerCardProps = {
-  banner: HomepagePromotionBanner;
-};
-
-const CmsPromotionBannerCard: React.FC<CmsPromotionBannerCardProps> = ({
-  banner,
-}) => (
-  <a
-    className="relative block h-[236px] overflow-hidden rounded-xl bg-[#F7F1EA] clef-link-highlight group"
-    href={banner.href}
-  >
-    {banner.image ? (
-      <Image
-        className="h-full w-full rounded-xl object-cover scale-105 blur-[2px] brightness-75 saturate-90 transition duration-700 ease-out group-hover:scale-110 group-hover:blur-0 group-hover:brightness-110 group-hover:saturate-110"
-        src={banner.image.src}
-        alt={banner.image.alt || banner.title}
-        width={banner.image.width ?? 632}
-        height={banner.image.height ?? 316}
-      />
-    ) : null}
-    <div className="absolute inset-0 rounded-xl bg-rhino-900/35 transition duration-700 ease-out group-hover:bg-rhino-900/10" />
-    <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-      <h2 className="font-heading text-3xl md:text-4xl font-semibold text-white drop-shadow-lg transition duration-500 ease-out group-hover:scale-105">
-        {banner.title}
-      </h2>
-      {banner.subtitle ? (
-        <p className="mt-3 max-w-sm text-sm text-white/90 drop-shadow">
-          {banner.subtitle}
-        </p>
-      ) : null}
-    </div>
-  </a>
-);
-
 type IndexSectionHeaders1Props = {
   content: HomepageContent;
 };
@@ -146,9 +111,34 @@ const imageSize = (image: CmsImage | null, fallback: number) =>
 const IndexSectionHeaders1: React.FC<IndexSectionHeaders1Props> = ({
   content,
 }) => {
-  const activePromotionBanners = content.promotionBanners.filter(
-    (banner) => banner.isActive,
-  );
+  const cmsPromotionCards = content.promotionBanners
+    .filter((banner) => banner.isActive && banner.images.length > 0)
+    .slice(0, 2)
+    .map((banner) => ({
+      ariaLabel: banner.title || 'Promotion',
+      href: banner.href,
+      slides: banner.images.map((image) => ({
+        image: image.src,
+        alt: image.alt || banner.title,
+      })),
+    }));
+  const promotionCards =
+    cmsPromotionCards.length === 2
+      ? cmsPromotionCards
+      : [
+          {
+            ariaLabel: 'Skincare promotions',
+            href: '/all-skincare',
+            slides: leftPromoSlides,
+          },
+          {
+            ariaLabel: 'Personal care promotions',
+            href: '/all-personal-care',
+            slides: rightPromoSlides,
+          },
+        ];
+  const promotionSource =
+    cmsPromotionCards.length === 2 ? 'payload' : 'controlled-fallback';
 
   return (
         <section className="relative overflow-hidden">
@@ -302,22 +292,21 @@ const IndexSectionHeaders1: React.FC<IndexSectionHeaders1Props> = ({
   <div className="pt-8 pb-12">
     <div className="container mx-auto px-4">
       <div className="flex flex-wrap">
-        {activePromotionBanners.length ? (
-          activePromotionBanners.map((banner) => (
-            <div className="w-full sm:w-1/2 p-4" key={`${banner.title}-${banner.href}`}>
-              <CmsPromotionBannerCard banner={banner} />
-            </div>
-          ))
-        ) : (
-          <>
-            <div className="w-full sm:w-1/2 p-4">
-              <PromoCarouselCard slides={leftPromoSlides} />
-            </div>
-            <div className="w-full sm:w-1/2 p-4">
-              <PromoCarouselCard slides={rightPromoSlides} />
-            </div>
-          </>
-        )}
+        {promotionCards.map((card) => (
+          <div
+            className="w-full sm:w-1/2 p-4"
+            data-promotion-source={promotionSource}
+            key={card.ariaLabel}
+          >
+            <a
+              aria-label={card.ariaLabel}
+              className="block rounded-xl clef-link-highlight"
+              href={card.href}
+            >
+              <PromoCarouselCard slides={card.slides} />
+            </a>
+          </div>
+        ))}
       </div>
     </div>
   </div>

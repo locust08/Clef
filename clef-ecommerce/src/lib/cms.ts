@@ -8,9 +8,22 @@ export type CmsImage = {
 export type HomepagePromotionBanner = {
   title: string
   subtitle: string
-  image: CmsImage | null
+  images: CmsImage[]
   href: string
   isActive: boolean
+}
+
+export type HomepageSectionKey =
+  | 'hero'
+  | 'categories'
+  | 'best-sellers'
+  | 'new-launch'
+  | 'social'
+  | 'testimonials'
+
+export type HomepageSection = {
+  section: HomepageSectionKey
+  isEnabled: boolean
 }
 
 export type CustomerReviewContent = {
@@ -35,6 +48,7 @@ export type HomepageContent = {
   newLaunchMedusaProductHandles: string[]
   homepageVideos: VideoCardContent[]
   customerReviews: CustomerReviewContent[]
+  sections: HomepageSection[]
 }
 
 export type VideoPlatform = 'tiktok' | 'instagram' | 'facebook'
@@ -82,6 +96,48 @@ export type CategoryPageContent = {
   videoUrl: string
   videoThumbnail: CmsImage | null
   isActive: boolean
+  sections: CategoryPageSection[]
+}
+
+export type AllProductsCategoryCard = {
+  title: string
+  image: CmsImage
+  href: string
+  badgeLabel: string
+}
+
+export type AllProductsHeroContent = {
+  title: string
+  image: CmsImage
+  ctaLabel: string
+}
+
+export type AllProductsFragranceBanner = {
+  eyebrow: string
+  title: string
+  description: string
+  videoUrl: string
+}
+
+export type AllProductsPageContent = {
+  title: string
+  hero: AllProductsHeroContent
+  categoryCards: AllProductsCategoryCard[]
+  fragranceBanner: AllProductsFragranceBanner | null
+}
+
+export type CategoryPageSectionKey =
+  | 'navigation'
+  | 'hero'
+  | 'benefits'
+  | 'products'
+  | 'video'
+  | 'editorial'
+  | 'footer'
+
+export type CategoryPageSection = {
+  section: CategoryPageSectionKey
+  isEnabled: boolean
 }
 
 export type ClefEditArticleQuestion = {
@@ -90,6 +146,7 @@ export type ClefEditArticleQuestion = {
 }
 
 export type ClefEditArticleProductSuggestion = {
+  productHandle: string
   name: string
   price: string
   description: string
@@ -122,6 +179,9 @@ type CmsMedia = {
 }
 
 type CmsHomepage = {
+  id?: number | string | null
+  updatedAt?: string | null
+  _status?: string | null
   heroTitle?: string | null
   heroSubtitle?: string | null
   heroImage?: CmsMedia | number | null
@@ -133,6 +193,11 @@ type CmsHomepage = {
     | {
         title?: string | null
         subtitle?: string | null
+        images?:
+          | {
+              image?: CmsMedia | number | null
+            }[]
+          | null
         image?: CmsMedia | number | null
         href?: string | null
         isActive?: boolean | null
@@ -142,6 +207,12 @@ type CmsHomepage = {
   newLaunchMedusaProductHandles?: { handle?: string | null }[] | null
   homepageVideos?: CmsVideoRow[] | null
   customerReviews?: CmsCustomerReviewRow[] | null
+  sections?:
+    | {
+        section?: HomepageSectionKey | null
+        isEnabled?: boolean | null
+      }[]
+    | null
 }
 
 type CmsFooter = {
@@ -174,7 +245,37 @@ type CmsCategoryPage = {
   videoTitle?: string | null
   videoUrl?: string | null
   videoThumbnail?: CmsMedia | number | null
+  sections?:
+    | {
+        section?: CategoryPageSectionKey | null
+        isEnabled?: boolean | null
+      }[]
+    | null
   isActive?: boolean | null
+}
+
+type CmsAllProductsCategoryCard = {
+  title?: string | null
+  image?: CmsMedia | number | null
+  href?: string | null
+  badgeLabel?: string | null
+}
+
+type CmsAllProductsCategory = {
+  heroTitle?: string | null
+  heroImage?: CmsMedia | number | null
+  heroCtaLabel?: string | null
+  categoryCards?: CmsAllProductsCategoryCard[] | null
+  bannerEyebrow?: string | null
+  bannerTitle?: string | null
+  bannerDescription?: string | null
+  bannerVideoUrl?: string | null
+}
+
+type CmsAllProductsPages = {
+  skincare?: CmsAllProductsCategory | null
+  personalCare?: CmsAllProductsCategory | null
+  fragrance?: CmsAllProductsCategory | null
 }
 
 type CmsClefEditArticle = {
@@ -196,6 +297,7 @@ type CmsClefEditArticle = {
     | null
   productSuggestions?:
     | {
+        productHandle?: string | null
         name?: string | null
         price?: string | null
         description?: string | null
@@ -246,36 +348,42 @@ export const DEFAULT_HOMEPAGE_CONTENT: HomepageContent = {
     {
       title: 'Skincare',
       subtitle: '',
-      image: {
-        src: '/coleos-assets/banners/homepage-category-skincare.png',
-        alt: 'Skincare',
-        width: 632,
-        height: 316,
-      },
+      images: [
+        {
+          src: '/coleos-assets/banners/homepage-category-skincare.png',
+          alt: 'Skincare',
+          width: 632,
+          height: 316,
+        },
+      ],
       href: '/all-skincare',
       isActive: true,
     },
     {
       title: 'Personal Care',
       subtitle: '',
-      image: {
-        src: '/coleos-assets/banners/homepage-category-personal-care.png',
-        alt: 'Personal Care',
-        width: 632,
-        height: 316,
-      },
+      images: [
+        {
+          src: '/coleos-assets/banners/homepage-category-personal-care.png',
+          alt: 'Personal Care',
+          width: 632,
+          height: 316,
+        },
+      ],
       href: '/all-personal-care',
       isActive: true,
     },
     {
       title: 'Fragrance',
       subtitle: '',
-      image: {
-        src: '/coleos-assets/banners/homepage-category-fragrance.png',
-        alt: 'Fragrance',
-        width: 632,
-        height: 316,
-      },
+      images: [
+        {
+          src: '/coleos-assets/banners/homepage-category-fragrance.png',
+          alt: 'Fragrance',
+          width: 632,
+          height: 316,
+        },
+      ],
       href: '/fragrance',
       isActive: true,
     },
@@ -344,6 +452,14 @@ export const DEFAULT_HOMEPAGE_CONTENT: HomepageContent = {
       displayOrder: 2,
     },
   ],
+  sections: [
+    { section: 'hero', isEnabled: true },
+    { section: 'categories', isEnabled: true },
+    { section: 'best-sellers', isEnabled: true },
+    { section: 'new-launch', isEnabled: true },
+    { section: 'social', isEnabled: true },
+    { section: 'testimonials', isEnabled: true },
+  ],
 }
 
 const DEFAULT_VIDEO_SECTION_CONTENT: VideoSectionContent = {
@@ -391,6 +507,15 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
     videoUrl: '',
     videoThumbnail: null,
     isActive: true,
+    sections: [
+      { section: 'navigation', isEnabled: true },
+      { section: 'hero', isEnabled: true },
+      { section: 'benefits', isEnabled: true },
+      { section: 'products', isEnabled: true },
+      { section: 'video', isEnabled: true },
+      { section: 'editorial', isEnabled: true },
+      { section: 'footer', isEnabled: true },
+    ],
   },
   'personal-care': {
     title: 'Personal Care',
@@ -410,6 +535,15 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
     videoUrl: '',
     videoThumbnail: null,
     isActive: true,
+    sections: [
+      { section: 'navigation', isEnabled: true },
+      { section: 'hero', isEnabled: true },
+      { section: 'benefits', isEnabled: true },
+      { section: 'products', isEnabled: true },
+      { section: 'video', isEnabled: true },
+      { section: 'editorial', isEnabled: true },
+      { section: 'footer', isEnabled: true },
+    ],
   },
   fragrance: {
     title: 'Fragrance',
@@ -418,7 +552,7 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
     headerTitle: 'Take care of your performance every day.',
     headerSubtitle: '',
     headerImage: {
-      src: '/coleos-assets/headers/bg-image3.png',
+      src: '/coleos-assets/headers/fragrance-rose-echoes-hero.png',
       alt: 'Fragrance',
       width: 1600,
       height: 700,
@@ -428,6 +562,116 @@ const DEFAULT_CATEGORY_CONTENT: Record<string, CategoryPageContent> = {
     videoUrl: '',
     videoThumbnail: null,
     isActive: true,
+    sections: [
+      { section: 'navigation', isEnabled: true },
+      { section: 'hero', isEnabled: true },
+      { section: 'benefits', isEnabled: true },
+      { section: 'products', isEnabled: true },
+      { section: 'video', isEnabled: true },
+      { section: 'editorial', isEnabled: true },
+      { section: 'footer', isEnabled: true },
+    ],
+  },
+}
+
+export const DEFAULT_ALL_PRODUCTS_PAGE_CONTENT: Record<
+  'skincare' | 'personal-care' | 'fragrance',
+  AllProductsPageContent
+> = {
+  skincare: {
+    title: 'Skincare',
+    hero: {
+      title: 'Take Care Of Your Performance Every Day.',
+      image: {
+        src: 'https://static.shuffle.dev/uploads/files/6f/6fb48a03fbf8bf9e36f18c917c673f67c9eac42d/5cb097d9-0f1d-4b51-9ad3-3cfab9fcfeec.png',
+        alt: 'Skincare',
+      },
+      ctaLabel: 'Start Buying',
+    },
+    categoryCards: [
+      {
+        title: 'Anti Aging',
+        image: { src: '/coleos-assets/banners/image7.png', alt: 'Anti Aging' },
+        href: '/shop/skincare/anti-aging',
+        badgeLabel: '',
+      },
+      {
+        title: 'Ocean Elixir',
+        image: { src: '/coleos-assets/banners/image6-small.png', alt: 'Ocean Elixir' },
+        href: '/shop/skincare/ocean-elixir',
+        badgeLabel: '',
+      },
+      {
+        title: 'Sheet Mask',
+        image: { src: '/coleos-assets/banners/image5-large.png', alt: 'Sheet Mask' },
+        href: '/shop/skincare/sheet-mask',
+        badgeLabel: '',
+      },
+      {
+        title: 'Facial Mask',
+        image: { src: '/coleos-assets/banners/image4-large.png', alt: 'Facial Mask' },
+        href: '/shop/skincare/facial-mask',
+        badgeLabel: '',
+      },
+    ],
+    fragranceBanner: null,
+  },
+  'personal-care': {
+    title: 'Personal Care',
+    hero: {
+      title: 'Take Care Of Your Performance Every Day.',
+      image: {
+        src: '/coleos-assets/headers/personal-care-hero.png',
+        alt: 'Personal Care',
+      },
+      ctaLabel: 'Start Buying',
+    },
+    categoryCards: [
+      {
+        title: 'Deodorant',
+        image: { src: '/coleos-assets/banners/image7.png', alt: 'Deodorant' },
+        href: '/shop/personal-care/deodorant',
+        badgeLabel: 'NEW LAUNCH',
+      },
+      {
+        title: 'Sunscreen',
+        image: { src: '/coleos-assets/banners/image6-small.png', alt: 'Sunscreen' },
+        href: '/shop/personal-care/sunscreen',
+        badgeLabel: '',
+      },
+      {
+        title: 'Bath Gel',
+        image: { src: '/coleos-assets/banners/image5-large.png', alt: 'Bath Gel' },
+        href: '/shop/personal-care/bath-gel',
+        badgeLabel: '',
+      },
+      {
+        title: 'Lotion',
+        image: { src: '/coleos-assets/banners/image4-large.png', alt: 'Lotion' },
+        href: '/shop/personal-care/lotion',
+        badgeLabel: '',
+      },
+    ],
+    fragranceBanner: null,
+  },
+  fragrance: {
+    title: 'Fragrance',
+    hero: {
+      title: 'Take Care Of Your Performance Every Day.',
+      image: {
+        src: '/coleos-assets/headers/fragrance-rose-echoes-hero.png',
+        alt: 'Fragrance',
+      },
+      ctaLabel: 'Start Buying',
+    },
+    categoryCards: [],
+    fragranceBanner: {
+      eyebrow: 'Watch Now!',
+      title: 'Live a little and your life will come alive',
+      description:
+        'CLEF Fragrance is a collection of fine fragrances that awaken your sense of ritual.',
+      videoUrl: 'https://www.youtube.com/embed/_9VUPq3SxOc',
+    },
   },
 }
 
@@ -440,6 +684,7 @@ const DEFAULT_CLEF_EDIT_HERO_IMAGE: CmsImage = {
 
 const DEFAULT_CLEF_EDIT_PRODUCTS: ClefEditArticleProductSuggestion[] = [
   {
+    productHandle: 'clef-ocean-elixir-hydrating-cleanser',
     name: 'Gentle Hydrating Cleanser',
     price: 'RM 45.00',
     description:
@@ -450,6 +695,7 @@ const DEFAULT_CLEF_EDIT_PRODUCTS: ClefEditArticleProductSuggestion[] = [
     },
   },
   {
+    productHandle: 'clef-ocean-elixir-hydrating-moisturiser',
     name: 'Barrier Repair Moisturizer',
     price: 'RM 68.00',
     description:
@@ -457,6 +703,7 @@ const DEFAULT_CLEF_EDIT_PRODUCTS: ClefEditArticleProductSuggestion[] = [
     image: null,
   },
   {
+    productHandle: 'clef-ocean-elixir-hydrating-toner',
     name: 'Soothing Calm Serum',
     price: 'RM 89.00',
     description:
@@ -567,22 +814,48 @@ const homepageVideoPlatforms: VideoPlatform[] = [
   'facebook',
 ]
 
-const getCmsBaseUrl = () =>
-  (process.env.NEXT_PUBLIC_PAYLOAD_URL || 'http://localhost:3001').replace(
-    /\/$/,
-    '',
-  )
+const loopbackHostnames = new Set(['localhost', '127.0.0.1', '::1'])
+
+export const getCmsBaseUrl = () => {
+  const configuredUrl = process.env.NEXT_PUBLIC_PAYLOAD_URL?.trim()
+
+  if (configuredUrl) {
+    const url = new URL(configuredUrl)
+
+    if (
+      url.username ||
+      url.password ||
+      !['', '/'].includes(url.pathname) ||
+      (process.env.NODE_ENV === 'production' &&
+        (url.protocol !== 'https:' || loopbackHostnames.has(url.hostname)))
+    ) {
+      throw new Error(
+        'NEXT_PUBLIC_PAYLOAD_URL must be a credential-free production HTTPS origin.',
+      )
+    }
+
+    return url.origin
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return 'http://localhost:3001'
+  }
+
+  throw new Error('NEXT_PUBLIC_PAYLOAD_URL is required in production.')
+}
 
 export const getCmsUrl = (path = '') => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
 
-  return `${getCmsBaseUrl()}${normalizedPath}`
+  return new URL(normalizedPath, `${getCmsBaseUrl()}/`).toString()
 }
 
 const cmsFetch = async <T>(path: string) => {
   const response = await fetch(getCmsUrl(path), {
+    cache: 'no-store',
     headers: {
       accept: 'application/json',
+      'cache-control': 'no-cache',
     },
   })
 
@@ -607,9 +880,23 @@ const toCmsImage = (
   const src = value.url.startsWith('/')
     ? getCmsUrl(value.url)
     : value.url
+  let mediaURL: URL
+
+  try {
+    mediaURL = new URL(src)
+  } catch {
+    return null
+  }
+
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (mediaURL.protocol !== 'https:' || loopbackHostnames.has(mediaURL.hostname))
+  ) {
+    return null
+  }
 
   return {
-    src,
+    src: mediaURL.toString(),
     alt: value.alt ?? fallbackAlt,
     width: value.width ?? undefined,
     height: value.height ?? undefined,
@@ -631,11 +918,44 @@ const rowsToHandles = (
 ) => {
   const handles =
     rows
-      ?.map((row) => row.handle?.trim())
+      ?.map((row) =>
+        row.handle
+          ?.trim()
+          .replace(/^https?:\/\/[^/]+\//, '')
+          .replace(/^(?:product|products)\//, '')
+          .replace(/^\/+/, ''),
+      )
       .filter((handle): handle is string => Boolean(handle)) ?? []
 
   return typeof limit === 'number' ? handles.slice(0, limit) : handles
 }
+
+const homepageSectionKeys: HomepageSectionKey[] = [
+  'hero',
+  'categories',
+  'best-sellers',
+  'new-launch',
+  'social',
+  'testimonials',
+]
+
+const isHomepageSectionKey = (value: unknown): value is HomepageSectionKey =>
+  homepageSectionKeys.includes(value as HomepageSectionKey)
+
+const categoryPageSectionKeys: CategoryPageSectionKey[] = [
+  'navigation',
+  'hero',
+  'benefits',
+  'products',
+  'video',
+  'editorial',
+  'footer',
+]
+
+const isCategoryPageSectionKey = (
+  value: unknown,
+): value is CategoryPageSectionKey =>
+  categoryPageSectionKeys.includes(value as CategoryPageSectionKey)
 
 const isHomepageVideoPlatform = (
   platform: string | null | undefined,
@@ -729,6 +1049,7 @@ const rowsToArticleProducts = (
   const products =
     rows
       ?.map((row) => ({
+        productHandle: row.productHandle?.trim() ?? '',
         name: row.name?.trim() ?? '',
         price: row.price?.trim() ?? '',
         description: row.description?.trim() ?? '',
@@ -736,7 +1057,14 @@ const rowsToArticleProducts = (
       }))
       .filter((row) => row.name && row.description) ?? []
 
-  return products.length ? products : fallback
+  if (!products.length) {
+    return fallback
+  }
+
+  return products.map((product, index) => ({
+    ...product,
+    productHandle: product.productHandle || fallback[index]?.productHandle || '',
+  }))
 }
 
 const toClefEditArticle = (
@@ -776,15 +1104,46 @@ export const getHomepageContent = async (): Promise<HomepageContent> => {
     const homepage = await cmsFetch<CmsHomepage>(
       '/api/globals/homepage?depth=1',
     )
+
+    if (
+      homepage.id == null ||
+      !homepage.heroTitle?.trim() ||
+      (homepage._status != null && homepage._status !== 'published')
+    ) {
+      throw new Error('Payload Homepage global is missing canonical published content.')
+    }
+
     const activeBanners =
       homepage.promotionBanners
         ?.filter((banner) => banner.isActive !== false)
-        .map((banner) => ({
-          title: textOrFallback(banner.title, 'CLEF'),
-          subtitle: banner.subtitle ?? '',
-          image: toCmsImage(banner.image, banner.title ?? 'CLEF banner'),
-          href: textOrFallback(banner.href, '#'),
-          isActive: banner.isActive !== false,
+        .map((banner) => {
+          const title = textOrFallback(banner.title, 'CLEF')
+          const images = [
+            toCmsImage(banner.image, title),
+            ...(banner.images?.map((row) => toCmsImage(row.image, title)) ?? []),
+          ].filter((image): image is CmsImage => Boolean(image))
+          const uniqueImages = images.filter(
+            (image, index) =>
+              images.findIndex((candidate) => candidate.src === image.src) === index,
+          )
+
+          return {
+            title,
+            subtitle: banner.subtitle ?? '',
+            images: uniqueImages,
+            href: textOrFallback(banner.href, '#'),
+            isActive: banner.isActive !== false,
+          }
+        }) ?? []
+    const sections =
+      homepage.sections
+        ?.filter(
+          (row): row is { section: HomepageSectionKey; isEnabled?: boolean | null } =>
+            isHomepageSectionKey(row.section),
+        )
+        .map((row) => ({
+          section: row.section,
+          isEnabled: row.isEnabled !== false,
         })) ?? []
 
     return {
@@ -827,11 +1186,15 @@ export const getHomepageContent = async (): Promise<HomepageContent> => {
       ),
       homepageVideos: rowsToHomepageVideos(homepage.homepageVideos),
       customerReviews: rowsToCustomerReviews(homepage.customerReviews),
+      sections: sections.length
+        ? sections
+        : DEFAULT_HOMEPAGE_CONTENT.sections,
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[CMS] Unable to load Homepage global.', error)
-    }
+    console.error(
+      '[CMS] Homepage content unavailable; using controlled fallback.',
+      error instanceof Error ? error.message : 'Unknown CMS error',
+    )
 
     return DEFAULT_HOMEPAGE_CONTENT
   }
@@ -895,6 +1258,81 @@ export const getFooterContent = async (): Promise<FooterContent> => {
   }
 }
 
+export const getAllProductsPageContent = async (
+  slug: 'skincare' | 'personal-care' | 'fragrance',
+): Promise<AllProductsPageContent> => {
+  const fallback = DEFAULT_ALL_PRODUCTS_PAGE_CONTENT[slug]
+
+  try {
+    const allProductsPages = await cmsFetch<CmsAllProductsPages>(
+      '/api/globals/all-products-pages?depth=1',
+    )
+    const cmsContent =
+      slug === 'personal-care'
+        ? allProductsPages.personalCare
+        : allProductsPages[slug]
+
+    if (!cmsContent) {
+      return fallback
+    }
+
+    const categoryCards = fallback.categoryCards.map((fallbackCard, index) => {
+      const cmsCard = cmsContent.categoryCards?.[index]
+
+      return {
+        title: textOrFallback(cmsCard?.title, fallbackCard.title),
+        image:
+          toCmsImage(cmsCard?.image, cmsCard?.title ?? fallbackCard.title) ??
+          fallbackCard.image,
+        href: textOrFallback(cmsCard?.href, fallbackCard.href),
+        badgeLabel:
+          cmsCard?.badgeLabel?.trim() ?? fallbackCard.badgeLabel,
+      }
+    })
+
+    return {
+      title: fallback.title,
+      hero: {
+        title: textOrFallback(cmsContent.heroTitle, fallback.hero.title),
+        image:
+          toCmsImage(cmsContent.heroImage, fallback.title) ??
+          fallback.hero.image,
+        ctaLabel: textOrFallback(
+          cmsContent.heroCtaLabel,
+          fallback.hero.ctaLabel,
+        ),
+      },
+      categoryCards,
+      fragranceBanner: fallback.fragranceBanner
+        ? {
+            eyebrow: textOrFallback(
+              cmsContent.bannerEyebrow,
+              fallback.fragranceBanner.eyebrow,
+            ),
+            title: textOrFallback(
+              cmsContent.bannerTitle,
+              fallback.fragranceBanner.title,
+            ),
+            description: textOrFallback(
+              cmsContent.bannerDescription,
+              fallback.fragranceBanner.description,
+            ),
+            videoUrl: textOrFallback(
+              cmsContent.bannerVideoUrl,
+              fallback.fragranceBanner.videoUrl,
+            ),
+          }
+        : null,
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[CMS] Unable to load All Products Page "${slug}".`, error)
+    }
+
+    return fallback
+  }
+}
+
 export const getCategoryPageContent = async (
   slug: string,
 ): Promise<CategoryPageContent> => {
@@ -923,6 +1361,19 @@ export const getCategoryPageContent = async (
       return fallback
     }
 
+    const sections =
+      categoryPage.sections
+        ?.filter(
+          (row): row is {
+            section: CategoryPageSectionKey
+            isEnabled?: boolean | null
+          } => isCategoryPageSectionKey(row.section),
+        )
+        .map((row) => ({
+          section: row.section,
+          isEnabled: row.isEnabled !== false,
+        })) ?? []
+
     return {
       title: textOrFallback(categoryPage.title, fallback.title),
       slug: categoryPage.slug ?? fallback.slug,
@@ -945,6 +1396,7 @@ export const getCategoryPageContent = async (
         toCmsImage(categoryPage.videoThumbnail, categoryPage.videoTitle ?? '') ??
         fallback.videoThumbnail,
       isActive: true,
+      sections: sections.length ? sections : fallback.sections,
     }
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {

@@ -1,4 +1,4 @@
-import { sdk } from './medusa';
+import { formatMyr, getStoreRegionId, normaliseMedusaError, storeFetch } from './medusa-store';
 
 type LooseCategory = {
   id: string;
@@ -45,14 +45,6 @@ type LooseProduct = {
   variants?: LooseVariant[];
   categories?: LooseCategory[];
   tags?: LooseTag[];
-};
-
-type LooseRegion = {
-  id: string;
-  currency_code?: string | null;
-  countries?: {
-    iso_2?: string | null;
-  }[];
 };
 
 export type StorefrontCategory = {
@@ -120,15 +112,13 @@ const CATEGORY_FIELDS = [
   '*category_children',
 ].join(',');
 
-let cachedRegionId: string | null = null;
-
 const normalizeMoneyAmount = (amount: number, currencyCode: string) => {
   return amount;
 };
 
 const formatMoney = (amount: number, currencyCode = 'usd') =>
   currencyCode.toLowerCase() === 'myr'
-    ? `MYR${amount.toFixed(2)}`
+    ? formatMyr(amount)
     : new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: currencyCode.toUpperCase(),
@@ -214,7 +204,7 @@ const mapCategory = (category: LooseCategory): StorefrontCategory | null => {
   };
 };
 
-const mapProduct = (product: LooseProduct): StorefrontProduct | null => {
+export const mapMedusaProduct = (product: LooseProduct): StorefrontProduct | null => {
   if (!product.id || !product.handle) {
     return null;
   }
@@ -283,58 +273,10 @@ const mapProduct = (product: LooseProduct): StorefrontProduct | null => {
   };
 };
 
-const isOfflineError = (error: unknown) => {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  return /fetch failed|failed to fetch|econnrefused|network/i.test(error.message);
-};
-
 const withFriendlyMedusaError = (error: unknown): never => {
   warnMedusaDevelopment('Unable to load Store API data.', error);
 
-  if (isOfflineError(error)) {
-    throw new Error(
-      'Medusa is offline. Start your Medusa backend and refresh this page.',
-    );
-  }
-
-  throw error;
-};
-
-const getStoreRegionId = async () => {
-  if (cachedRegionId) {
-    return cachedRegionId;
-  }
-
-  try {
-    const response = await sdk.store.region.list({
-      fields: 'id,currency_code,*countries',
-      limit: 100,
-    } as never);
-    const regions = (response.regions ?? []) as LooseRegion[];
-    const region =
-      regions.find(
-        (item) =>
-          item.currency_code?.toLowerCase() === 'myr' ||
-          item.countries?.some(
-            (country) => country.iso_2?.toLowerCase() === 'my',
-          ),
-      ) ?? regions[0];
-
-    if (!region?.id) {
-      throw new Error(
-        'No Medusa Store regions found. Create a region in Medusa Admin before loading storefront prices.',
-      );
-    }
-
-    cachedRegionId = region.id;
-
-    return cachedRegionId;
-  } catch (error) {
-    return withFriendlyMedusaError(error);
-  }
+  throw new Error(normaliseMedusaError(error));
 };
 
 const categoryDescendants = (
@@ -371,14 +313,12 @@ const categoryDescendants = (
 export const getProducts = async () => {
   try {
     const regionId = await getStoreRegionId();
-    const response = await sdk.store.product.list({
-      fields: PRODUCT_FIELDS,
-      limit: 100,
-      region_id: regionId,
-    } as never);
+    const response = await storeFetch<{ products?: LooseProduct[] }>(
+      `/store/products?fields=${encodeURIComponent(PRODUCT_FIELDS)}&limit=100&region_id=${encodeURIComponent(regionId)}`,
+    );
 
     return ((response.products ?? []) as LooseProduct[])
-      .map(mapProduct)
+      .map(mapMedusaProduct)
       .filter((product): product is StorefrontProduct => Boolean(product));
   } catch (error) {
     return withFriendlyMedusaError(error);
@@ -388,14 +328,11 @@ export const getProducts = async () => {
 export const getProductByHandle = async (handle: string) => {
   try {
     const regionId = await getStoreRegionId();
-    const response = await sdk.store.product.list({
-      fields: PRODUCT_FIELDS,
-      handle,
-      limit: 1,
-      region_id: regionId,
-    } as never);
+    const response = await storeFetch<{ products?: LooseProduct[] }>(
+      `/store/products?fields=${encodeURIComponent(PRODUCT_FIELDS)}&handle=${encodeURIComponent(handle)}&limit=1&region_id=${encodeURIComponent(regionId)}`,
+    );
     const product = ((response.products ?? []) as LooseProduct[])
-      .map(mapProduct)
+      .map(mapMedusaProduct)
       .find(Boolean);
 
     return product ?? null;
@@ -405,17 +342,24 @@ export const getProductByHandle = async (handle: string) => {
 };
 
 export const getProductsByHandles = async (handles: string[]) => {
+  if (handles.length === 0) {
+    return [];
+  }
+
   try {
     const regionId = await getStoreRegionId();
-    const response = await sdk.store.product.list({
+    const params = new URLSearchParams({
       fields: PRODUCT_FIELDS,
-      handle: handles,
-      limit: handles.length,
+      limit: String(handles.length),
       region_id: regionId,
-    } as never);
+    });
+    handles.forEach((handle) => params.append('handle[]', handle));
+    const response = await storeFetch<{ products?: LooseProduct[] }>(
+      `/store/products?${params.toString()}`,
+    );
 
     return ((response.products ?? []) as LooseProduct[])
-      .map(mapProduct)
+      .map(mapMedusaProduct)
       .filter((product): product is StorefrontProduct => Boolean(product));
   } catch (error) {
     return withFriendlyMedusaError(error);
@@ -424,10 +368,9 @@ export const getProductsByHandles = async (handles: string[]) => {
 
 export const getCategories = async () => {
   try {
-    const response = await sdk.store.category.list({
-      fields: CATEGORY_FIELDS,
-      limit: 100,
-    } as never);
+    const response = await storeFetch<{ product_categories?: LooseCategory[] }>(
+      `/store/product-categories?fields=${encodeURIComponent(CATEGORY_FIELDS)}&limit=100`,
+    );
 
     return ((response.product_categories ?? []) as LooseCategory[])
       .map(mapCategory)
@@ -457,6 +400,74 @@ export const getProductsByCategoryHandle = async (
       categoryHandle ? allowedHandles.has(categoryHandle) : false,
     ),
   );
+};
+
+export const getProductsByIds = async (ids: string[]) => {
+  const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+
+  if (uniqueIds.length === 0) {
+    return [];
+  }
+
+  try {
+    const regionId = await getStoreRegionId();
+    const params = new URLSearchParams({
+      fields: PRODUCT_FIELDS,
+      limit: String(uniqueIds.length),
+      region_id: regionId,
+    });
+    uniqueIds.forEach((id) => params.append('id[]', id));
+    const response = await storeFetch<{ products?: LooseProduct[] }>(
+      `/store/products?${params.toString()}`,
+    );
+
+    return ((response.products ?? []) as LooseProduct[])
+      .map(mapMedusaProduct)
+      .filter((product): product is StorefrontProduct => Boolean(product));
+  } catch (error) {
+    return withFriendlyMedusaError(error);
+  }
+};
+
+export const searchProducts = async (query: string, limit = 24, offset = 0) => {
+  const trimmedQuery = query.trim();
+
+  if (!trimmedQuery) {
+    return {
+      products: [] as StorefrontProduct[],
+      count: 0,
+      limit,
+      offset,
+    };
+  }
+
+  try {
+    const regionId = await getStoreRegionId();
+    const params = new URLSearchParams({
+      fields: PRODUCT_FIELDS,
+      limit: String(limit),
+      offset: String(offset),
+      q: trimmedQuery,
+      region_id: regionId,
+    });
+    const response = await storeFetch<{
+      products?: LooseProduct[];
+      count?: number;
+      limit?: number;
+      offset?: number;
+    }>(`/store/products?${params.toString()}`);
+
+    return {
+      products: (response.products ?? [])
+        .map(mapMedusaProduct)
+        .filter((product): product is StorefrontProduct => Boolean(product)),
+      count: response.count ?? response.products?.length ?? 0,
+      limit: response.limit ?? limit,
+      offset: response.offset ?? offset,
+    };
+  } catch (error) {
+    return withFriendlyMedusaError(error);
+  }
 };
 
 const metadataOrder = (

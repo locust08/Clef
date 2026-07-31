@@ -12,6 +12,7 @@ node_modules/
 
 # Framework/build output
 .next/
+.next.*/
 out/
 output/
 build/
@@ -19,7 +20,10 @@ dist/
 .turbo/
 .cache/
 .medusa/
+.open-next/
+.wrangler/
 coverage/
+test-results/
 
 # Generated local files
 *.tsbuildinfo

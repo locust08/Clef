@@ -5,6 +5,8 @@ import nextEnv from '@next/env'
 import { config as loadEnv } from 'dotenv'
 import { getPayload } from 'payload'
 
+import { ALL_PRODUCTS_PAGES_DEFAULTS } from '../src/payload/globals/AllProductsPages'
+
 loadEnv({ path: '.env.local' })
 loadEnv()
 
@@ -62,6 +64,7 @@ type ClefEditArticleSeed = {
     answer: string
   }[]
   productSuggestions: {
+    productHandle: string
     name: string
     price: string
     description: string
@@ -154,6 +157,7 @@ const homepageSeed = {
     {
       title: 'Skincare Essentials',
       subtitle: 'Build a routine with CLEF skincare favorites.',
+      images: [],
       image: null,
       href: '/all-skincare',
       isActive: true,
@@ -161,6 +165,7 @@ const homepageSeed = {
     {
       title: 'Personal Care',
       subtitle: 'Everyday body care for simple daily rituals.',
+      images: [],
       image: null,
       href: '/all-personal-care',
       isActive: true,
@@ -300,6 +305,7 @@ const categorySeeds: CategorySeed[] = categorySeedBases.map((category) => ({
 
 const sharedProductSuggestions = [
   {
+    productHandle: 'clef-ocean-elixir-hydrating-cleanser',
     name: 'Gentle Hydrating Cleanser',
     price: 'RM 45.00',
     description:
@@ -307,6 +313,7 @@ const sharedProductSuggestions = [
     image: null,
   },
   {
+    productHandle: 'clef-ocean-elixir-hydrating-moisturiser',
     name: 'Barrier Repair Moisturizer',
     price: 'RM 68.00',
     description:
@@ -314,6 +321,7 @@ const sharedProductSuggestions = [
     image: null,
   },
   {
+    productHandle: 'clef-ocean-elixir-hydrating-toner',
     name: 'Soothing Calm Serum',
     price: 'RM 89.00',
     description:
@@ -425,6 +433,43 @@ const seedGlobals = async (payload: Awaited<ReturnType<typeof getPayload>>) => {
     overrideAccess: true,
   })
   console.log('Updated Footer global.')
+}
+
+const seedAllProductsPages = async (
+  payload: Awaited<ReturnType<typeof getPayload>>,
+) => {
+  const allProductsPages = await payload.findGlobal({
+    slug: 'all-products-pages',
+    depth: 0,
+    overrideAccess: true,
+  })
+
+  await payload.updateGlobal({
+    slug: 'all-products-pages',
+    data: {
+      skincare: {
+        ...ALL_PRODUCTS_PAGES_DEFAULTS.skincare,
+        ...allProductsPages.skincare,
+        categoryCards: allProductsPages.skincare?.categoryCards?.length
+          ? allProductsPages.skincare.categoryCards
+          : ALL_PRODUCTS_PAGES_DEFAULTS.skincare.categoryCards,
+      },
+      personalCare: {
+        ...ALL_PRODUCTS_PAGES_DEFAULTS.personalCare,
+        ...allProductsPages.personalCare,
+        categoryCards: allProductsPages.personalCare?.categoryCards?.length
+          ? allProductsPages.personalCare.categoryCards
+          : ALL_PRODUCTS_PAGES_DEFAULTS.personalCare.categoryCards,
+      },
+      fragrance: {
+        ...ALL_PRODUCTS_PAGES_DEFAULTS.fragrance,
+        ...allProductsPages.fragrance,
+      },
+    },
+    depth: 0,
+    overrideAccess: true,
+  })
+  console.log('Initialized missing All Products Pages global content.')
 }
 
 const seedCustomerReviews = async (
@@ -546,6 +591,7 @@ const destroyPayload = async (
 const main = async () => {
   const shouldSeedClefEditOnly = process.argv.includes('--clef-edit-only')
   const shouldSeedReviewsOnly = process.argv.includes('--reviews-only')
+  const shouldSeedAllProductsOnly = process.argv.includes('--all-products-only')
 
   console.log('Loading Payload config...')
   const { default: config } = await import('../payload.config')
@@ -569,10 +615,18 @@ const main = async () => {
       return
     }
 
+    if (shouldSeedAllProductsOnly) {
+      console.log('Initializing Payload CMS All Products Pages only...')
+      await seedAllProductsPages(payload)
+      console.log('Payload CMS All Products Pages initialization complete.')
+      return
+    }
+
     console.log('Seeding Payload CMS default CLEF content...')
     console.log('Homepage videos: TikTok, Instagram, Facebook only.')
 
     await seedGlobals(payload)
+    await seedAllProductsPages(payload)
     await upsertCategoryPages(payload)
     await upsertClefEditArticles(payload)
 

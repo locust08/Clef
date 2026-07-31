@@ -5,6 +5,10 @@ import ClefInfoSectionCustomComponents1 from '../../components/custom-components
 import ClefInfoSectionProductDetails3 from '../../components/product-details/ClefInfoSectionProductDetails3';
 import ClefInfoSectionCustomComponents2 from '../../components/custom-components/ClefInfoSectionCustomComponents2';
 import {
+  getProductsByHandles,
+  type StorefrontProduct,
+} from '../../lib/medusa-products';
+import {
   getClefEditArticle,
   getClefEditArticles,
   type ClefEditArticle,
@@ -12,10 +16,12 @@ import {
 
 type ClefEditArticlePageProps = {
   article: ClefEditArticle;
+  suggestedProducts: (StorefrontProduct & { editorialDescription: string })[];
 };
 
 const ClefEditArticlePage: React.FC<ClefEditArticlePageProps> = ({
   article,
+  suggestedProducts,
 }) => {
   return (
     <>
@@ -29,7 +35,10 @@ const ClefEditArticlePage: React.FC<ClefEditArticlePageProps> = ({
         />
       </Head>
       <ClefInfoSectionCustomComponents1 />
-      <ClefInfoSectionProductDetails3 article={article} />
+      <ClefInfoSectionProductDetails3
+        article={article}
+        suggestedProducts={suggestedProducts}
+      />
       <ClefInfoSectionCustomComponents2 />
     </>
   );
@@ -61,9 +70,39 @@ export const getStaticProps: GetStaticProps<ClefEditArticlePageProps> = async ({
     };
   }
 
+  let suggestedProducts: ClefEditArticlePageProps['suggestedProducts'] = [];
+
+  try {
+    const suggestions = article.productSuggestions.filter(
+      (suggestion) => suggestion.productHandle,
+    );
+    const products = await getProductsByHandles(
+      suggestions.map((suggestion) => suggestion.productHandle),
+    );
+    const productsByHandle = new Map(
+      products.map((product) => [product.handle, product]),
+    );
+
+    suggestedProducts = suggestions
+      .map((suggestion) => {
+        const product = productsByHandle.get(suggestion.productHandle);
+
+        return product
+          ? { ...product, editorialDescription: suggestion.description }
+          : null;
+      })
+      .filter(
+        (product): product is StorefrontProduct & { editorialDescription: string } =>
+          Boolean(product),
+      );
+  } catch {
+    // Article content remains available if the commerce API is temporarily unavailable.
+  }
+
   return {
     props: {
       article,
+      suggestedProducts,
     },
     revalidate: 60,
   };
