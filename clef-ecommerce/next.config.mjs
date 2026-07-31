@@ -4,6 +4,27 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const isDevelopment = process.env.NODE_ENV === 'development'
 
+const getRemoteImagePattern = (value) => {
+  if (!value) return null
+
+  try {
+    const url = new URL(value)
+
+    return url.protocol === 'https:'
+      ? {
+          protocol: 'https',
+          hostname: url.hostname,
+        }
+      : null
+  } catch {
+    return null
+  }
+}
+
+const payloadImagePattern = getRemoteImagePattern(
+  process.env.NEXT_PUBLIC_PAYLOAD_URL,
+)
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
@@ -24,6 +45,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'placehold.co',
       },
+      ...(payloadImagePattern ? [payloadImagePattern] : []),
       ...(isDevelopment
         ? [
             {

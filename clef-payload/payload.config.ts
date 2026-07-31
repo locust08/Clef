@@ -27,21 +27,68 @@ const isPayloadCLI = process.argv.some((value) => realpath(value)?.endsWith(path
 const isCloudflareWorker = process.env.DEPLOYMENT_TARGET === 'cloudflare-workers'
 const isProduction = process.env.NODE_ENV === 'production'
 const useWranglerRemote = process.env.PAYLOAD_USE_WRANGLER_REMOTE === 'true'
-const configuredServerURL =
+const rawConfiguredServerURL =
   process.env.PAYLOAD_PUBLIC_SERVER_URL?.trim() ||
-  process.env.NEXT_PUBLIC_SERVER_URL?.trim() ||
-  'http://localhost:3001'
+  process.env.NEXT_PUBLIC_SERVER_URL?.trim()
+const configuredServerURL = rawConfiguredServerURL || 'http://localhost:3001'
 const payloadSecret = process.env.PAYLOAD_SECRET?.trim()
 
 if (isProduction && (!payloadSecret || payloadSecret.length < 32)) {
   throw new Error('PAYLOAD_SECRET of at least 32 characters is required in production')
 }
 
-const serverOrigin = new URL(configuredServerURL).origin
+if (isProduction && !rawConfiguredServerURL) {
+  throw new Error(
+    'PAYLOAD_PUBLIC_SERVER_URL or NEXT_PUBLIC_SERVER_URL is required in production',
+  )
+}
+
+const serverURL = new URL(configuredServerURL)
+const isLoopbackHostname = ['localhost', '127.0.0.1', '::1'].includes(
+  serverURL.hostname,
+)
+
+if (
+  isProduction &&
+  (serverURL.protocol !== 'https:' ||
+    isLoopbackHostname ||
+    serverURL.username ||
+    serverURL.password)
+) {
+  throw new Error('Payload production server URL must be a credential-free HTTPS origin')
+}
+
+const serverOrigin = serverURL.origin
+const configuredAllowedOrigins =
+  process.env.PAYLOAD_ALLOWED_ORIGINS?.split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map((value) => {
+      const origin = new URL(value)
+
+      if (
+        isProduction &&
+        (origin.protocol !== 'https:' ||
+          ['localhost', '127.0.0.1', '::1'].includes(origin.hostname) ||
+          origin.username ||
+          origin.password)
+      ) {
+        throw new Error('Payload production allowed origins must use HTTPS')
+      }
+
+      return origin.origin
+    }) ?? []
 const trustedOrigins = isProduction
-  ? [serverOrigin]
+  ? Array.from(new Set([serverOrigin, ...configuredAllowedOrigins]))
   : Array.from(
-      new Set([serverOrigin, 'http://localhost:3001', 'http://127.0.0.1:3001']),
+      new Set([
+        serverOrigin,
+        ...configuredAllowedOrigins,
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+      ]),
     )
 const emailEnabled = process.env.EMAIL_ENABLED?.toLowerCase() === 'true'
 const resendApiKey = process.env.RESEND_API_KEY?.trim()

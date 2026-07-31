@@ -9,10 +9,15 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
   "vars": {
     "DEPLOYMENT_TARGET": "cloudflare-workers",
     "PAYLOAD_PUBLIC_SERVER_URL": "https://clef-payload-preview.easondev.workers.dev",
     "NEXT_PUBLIC_SERVER_URL": "https://clef-payload-preview.easondev.workers.dev",
+    "PAYLOAD_ALLOWED_ORIGINS": "https://clef-ecommerce.easondev.workers.dev,https://clef-alpha.vercel.app",
     "EMAIL_ENABLED": "false"
   },
   "d1_databases": [

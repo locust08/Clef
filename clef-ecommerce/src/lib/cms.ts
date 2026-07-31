@@ -179,6 +179,9 @@ type CmsMedia = {
 }
 
 type CmsHomepage = {
+  id?: number | string | null
+  updatedAt?: string | null
+  _status?: string | null
   heroTitle?: string | null
   heroSubtitle?: string | null
   heroImage?: CmsMedia | number | null
@@ -811,11 +814,27 @@ const homepageVideoPlatforms: VideoPlatform[] = [
   'facebook',
 ]
 
-const getCmsBaseUrl = () => {
+const loopbackHostnames = new Set(['localhost', '127.0.0.1', '::1'])
+
+export const getCmsBaseUrl = () => {
   const configuredUrl = process.env.NEXT_PUBLIC_PAYLOAD_URL?.trim()
 
   if (configuredUrl) {
-    return configuredUrl.replace(/\/$/, '')
+    const url = new URL(configuredUrl)
+
+    if (
+      url.username ||
+      url.password ||
+      !['', '/'].includes(url.pathname) ||
+      (process.env.NODE_ENV === 'production' &&
+        (url.protocol !== 'https:' || loopbackHostnames.has(url.hostname)))
+    ) {
+      throw new Error(
+        'NEXT_PUBLIC_PAYLOAD_URL must be a credential-free production HTTPS origin.',
+      )
+    }
+
+    return url.origin
   }
 
   if (process.env.NODE_ENV !== 'production') {
@@ -828,13 +847,15 @@ const getCmsBaseUrl = () => {
 export const getCmsUrl = (path = '') => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
 
-  return `${getCmsBaseUrl()}${normalizedPath}`
+  return new URL(normalizedPath, `${getCmsBaseUrl()}/`).toString()
 }
 
 const cmsFetch = async <T>(path: string) => {
   const response = await fetch(getCmsUrl(path), {
+    cache: 'no-store',
     headers: {
       accept: 'application/json',
+      'cache-control': 'no-cache',
     },
   })
 
@@ -859,9 +880,23 @@ const toCmsImage = (
   const src = value.url.startsWith('/')
     ? getCmsUrl(value.url)
     : value.url
+  let mediaURL: URL
+
+  try {
+    mediaURL = new URL(src)
+  } catch {
+    return null
+  }
+
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (mediaURL.protocol !== 'https:' || loopbackHostnames.has(mediaURL.hostname))
+  ) {
+    return null
+  }
 
   return {
-    src,
+    src: mediaURL.toString(),
     alt: value.alt ?? fallbackAlt,
     width: value.width ?? undefined,
     height: value.height ?? undefined,
@@ -1069,6 +1104,15 @@ export const getHomepageContent = async (): Promise<HomepageContent> => {
     const homepage = await cmsFetch<CmsHomepage>(
       '/api/globals/homepage?depth=1',
     )
+
+    if (
+      homepage.id == null ||
+      !homepage.heroTitle?.trim() ||
+      (homepage._status != null && homepage._status !== 'published')
+    ) {
+      throw new Error('Payload Homepage global is missing canonical published content.')
+    }
+
     const activeBanners =
       homepage.promotionBanners
         ?.filter((banner) => banner.isActive !== false)
@@ -1147,9 +1191,10 @@ export const getHomepageContent = async (): Promise<HomepageContent> => {
         : DEFAULT_HOMEPAGE_CONTENT.sections,
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('[CMS] Unable to load Homepage global.', error)
-    }
+    console.error(
+      '[CMS] Homepage content unavailable; using controlled fallback.',
+      error instanceof Error ? error.message : 'Unknown CMS error',
+    )
 
     return DEFAULT_HOMEPAGE_CONTENT
   }

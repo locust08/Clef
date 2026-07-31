@@ -111,6 +111,35 @@ const imageSize = (image: CmsImage | null, fallback: number) =>
 const IndexSectionHeaders1: React.FC<IndexSectionHeaders1Props> = ({
   content,
 }) => {
+  const cmsPromotionCards = content.promotionBanners
+    .filter((banner) => banner.isActive && banner.images.length > 0)
+    .slice(0, 2)
+    .map((banner) => ({
+      ariaLabel: banner.title || 'Promotion',
+      href: banner.href,
+      slides: banner.images.map((image) => ({
+        image: image.src,
+        alt: image.alt || banner.title,
+      })),
+    }));
+  const promotionCards =
+    cmsPromotionCards.length === 2
+      ? cmsPromotionCards
+      : [
+          {
+            ariaLabel: 'Skincare promotions',
+            href: '/all-skincare',
+            slides: leftPromoSlides,
+          },
+          {
+            ariaLabel: 'Personal care promotions',
+            href: '/all-personal-care',
+            slides: rightPromoSlides,
+          },
+        ];
+  const promotionSource =
+    cmsPromotionCards.length === 2 ? 'payload' : 'controlled-fallback';
+
   return (
         <section className="relative overflow-hidden">
   <div className="hidden fixed top-0 left-0 bottom-0 w-5/6 max-w-md z-50">
@@ -263,12 +292,21 @@ const IndexSectionHeaders1: React.FC<IndexSectionHeaders1Props> = ({
   <div className="pt-8 pb-12">
     <div className="container mx-auto px-4">
       <div className="flex flex-wrap">
-        <div className="w-full sm:w-1/2 p-4">
-          <PromoCarouselCard slides={leftPromoSlides} />
-        </div>
-        <div className="w-full sm:w-1/2 p-4">
-          <PromoCarouselCard slides={rightPromoSlides} />
-        </div>
+        {promotionCards.map((card) => (
+          <div
+            className="w-full sm:w-1/2 p-4"
+            data-promotion-source={promotionSource}
+            key={card.ariaLabel}
+          >
+            <a
+              aria-label={card.ariaLabel}
+              className="block rounded-xl clef-link-highlight"
+              href={card.href}
+            >
+              <PromoCarouselCard slides={card.slides} />
+            </a>
+          </div>
+        ))}
       </div>
     </div>
   </div>

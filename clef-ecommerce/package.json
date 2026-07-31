@@ -17,7 +17,7 @@
         "type-check": "tsc --noEmit",
         "typecheck:doppler": "doppler run -- npm run type-check",
         "test:email": "tsx scripts/test-email.ts",
-        "test": "node scripts/storefront-functions.test.mjs && tsx --test src/lib/leads/submit-lead.test.ts src/lib/checkout/complete-order.test.ts src/lib/medusa/orders.test.ts src/lib/cms-all-products.test.ts",
+        "test": "node scripts/storefront-functions.test.mjs && node scripts/homepage-cms-production.test.mjs && node scripts/home-promo-carousel.test.mjs && node scripts/home-promotion-spacing.test.mjs && tsx --test src/lib/leads/submit-lead.test.ts src/lib/checkout/complete-order.test.ts src/lib/medusa/orders.test.ts src/lib/cms-all-products.test.ts src/lib/cms-homepage.test.ts",
         "test:e2e": "playwright test"
     },
     "dependencies": {

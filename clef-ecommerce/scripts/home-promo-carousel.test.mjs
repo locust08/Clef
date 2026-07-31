@@ -60,17 +60,20 @@ if (source.includes('style={{ aspectRatio }}')) {
   throw new Error('Promotion banners should not use image-driven card heights.');
 }
 
-if (source.includes('activePromotionBanners.length')) {
-  throw new Error('CMS promotion rows should not replace the two-card carousel.');
+for (const cmsMarker of [
+  'content.promotionBanners',
+  "cmsPromotionCards.length === 2",
+  "promotionSource",
+  "'payload'",
+  "'controlled-fallback'",
+]) {
+  if (!source.includes(cmsMarker)) {
+    throw new Error(`Expected Payload promotion carousel marker: ${cmsMarker}`);
+  }
 }
 
-const renderedCarouselCards =
-  source.match(/<PromoCarouselCard slides=\{/g)?.length ?? 0;
-
-if (renderedCarouselCards !== 2) {
-  throw new Error(
-    `Expected exactly two rendered promotion carousel cards, found ${renderedCarouselCards}.`,
-  );
+if (!source.includes('<PromoCarouselCard slides={card.slides} />')) {
+  throw new Error('Expected the two-card renderer to receive Payload or fallback slides.');
 }
 
 const leftPairPattern =

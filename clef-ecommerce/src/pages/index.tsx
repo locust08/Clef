@@ -116,7 +116,14 @@ const getProductsByPayloadHandles = async (handles: string[]) => {
     .filter((product): product is StorefrontProduct => Boolean(product));
 };
 
-export const getServerSideProps: GetServerSideProps<IndexProps> = async () => {
+export const getServerSideProps: GetServerSideProps<IndexProps> = async ({
+  res,
+}) => {
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=30, stale-while-revalidate=60',
+  );
+
   const [homepageContent, footerContent] = await Promise.all([
     getHomepageContent(),
     getFooterContent(),
