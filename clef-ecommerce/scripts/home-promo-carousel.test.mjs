@@ -48,6 +48,24 @@ for (const expected of [
   }
 }
 
+for (const previousDesignMarker of [
+  'h-[236px]',
+  'object-cover',
+  'blur-[2px]',
+  'brightness-75',
+  'bg-rhino-900/35',
+]) {
+  if (!source.includes(previousDesignMarker)) {
+    throw new Error(
+      `Expected previous promotion banner design marker: ${previousDesignMarker}`,
+    );
+  }
+}
+
+if (source.includes('style={{ aspectRatio }}')) {
+  throw new Error('Promotion banners should not use image-driven card heights.');
+}
+
 const leftPairPattern =
   /leftPromoSlides[\s\S]*home-promo-facial-serums\.png[\s\S]*home-promo-hydrating-masks\.png/;
 const rightPairPattern =
