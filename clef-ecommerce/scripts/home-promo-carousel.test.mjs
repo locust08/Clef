@@ -48,13 +48,7 @@ for (const expected of [
   }
 }
 
-for (const previousDesignMarker of [
-  'h-[236px]',
-  'object-cover',
-  'blur-[2px]',
-  'brightness-75',
-  'bg-rhino-900/35',
-]) {
+for (const previousDesignMarker of ['h-[236px]', 'object-cover']) {
   if (!source.includes(previousDesignMarker)) {
     throw new Error(
       `Expected previous promotion banner design marker: ${previousDesignMarker}`,
@@ -64,6 +58,19 @@ for (const previousDesignMarker of [
 
 if (source.includes('style={{ aspectRatio }}')) {
   throw new Error('Promotion banners should not use image-driven card heights.');
+}
+
+if (source.includes('activePromotionBanners.length')) {
+  throw new Error('CMS promotion rows should not replace the two-card carousel.');
+}
+
+const renderedCarouselCards =
+  source.match(/<PromoCarouselCard slides=\{/g)?.length ?? 0;
+
+if (renderedCarouselCards !== 2) {
+  throw new Error(
+    `Expected exactly two rendered promotion carousel cards, found ${renderedCarouselCards}.`,
+  );
 }
 
 const leftPairPattern =

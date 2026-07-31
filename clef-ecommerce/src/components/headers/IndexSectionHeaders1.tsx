@@ -3,7 +3,6 @@ import Image from 'next/image';
 import type {
   CmsImage,
   HomepageContent,
-  HomepagePromotionBanner,
 } from '../../lib/cms';
 
 const AUTO_CHANGE_MS = 4500;
@@ -102,84 +101,6 @@ const PromoCarouselCard: React.FC<PromoCarouselCardProps> = ({ slides }) => {
   );
 };
 
-type CmsPromotionBannerCardProps = {
-  banner: HomepagePromotionBanner;
-};
-
-const CmsPromotionBannerCard: React.FC<CmsPromotionBannerCardProps> = ({
-  banner,
-}) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const images = banner.images;
-
-  useEffect(() => {
-    if (images.length < 2 || isPaused) {
-      return;
-    }
-
-    const prefersReducedMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-
-    if (prefersReducedMotion) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % images.length);
-    }, AUTO_CHANGE_MS);
-
-    return () => window.clearInterval(intervalId);
-  }, [images.length, isPaused]);
-
-  useEffect(() => {
-    if (activeIndex >= images.length) {
-      setActiveIndex(0);
-    }
-  }, [activeIndex, images.length]);
-
-  return (
-    <a
-      aria-label={banner.title || 'Promotion'}
-      className="relative block h-[236px] overflow-hidden rounded-xl bg-[#F7F1EA] clef-link-highlight group"
-      href={banner.href}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      {images.map((image, index) => {
-        const isActive = index === activeIndex;
-
-        return (
-          <Image
-            key={image.src}
-            alt={isActive ? image.alt || banner.title : ''}
-            className={`absolute inset-0 h-full w-full rounded-xl object-cover transition-all duration-700 ease-out ${
-              isActive
-                ? 'opacity-100 scale-105 blur-[2px] brightness-75 saturate-90 group-hover:scale-110 group-hover:blur-0 group-hover:brightness-110 group-hover:saturate-110 group-focus-visible:scale-110 group-focus-visible:blur-0 group-focus-visible:brightness-110 group-focus-visible:saturate-110'
-                : 'pointer-events-none opacity-0 scale-105'
-            }`}
-            fill
-            sizes="(min-width: 640px) 50vw, 100vw"
-            src={image.src}
-          />
-        );
-      })}
-      <div className="absolute inset-0 rounded-xl bg-rhino-900/35 transition duration-700 ease-out group-hover:bg-rhino-900/10 group-focus-visible:bg-rhino-900/10" />
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-        <h2 className="font-heading text-3xl md:text-4xl font-semibold text-white drop-shadow-lg transition duration-500 ease-out group-hover:scale-105 group-focus-visible:scale-105">
-          {banner.title}
-        </h2>
-        {banner.subtitle ? (
-          <p className="mt-3 max-w-sm text-sm text-white/90 drop-shadow">
-            {banner.subtitle}
-          </p>
-        ) : null}
-      </div>
-    </a>
-  );
-};
-
 type IndexSectionHeaders1Props = {
   content: HomepageContent;
 };
@@ -190,10 +111,6 @@ const imageSize = (image: CmsImage | null, fallback: number) =>
 const IndexSectionHeaders1: React.FC<IndexSectionHeaders1Props> = ({
   content,
 }) => {
-  const activePromotionBanners = content.promotionBanners.filter(
-    (banner) => banner.isActive,
-  );
-
   return (
         <section className="relative overflow-hidden">
   <div className="hidden fixed top-0 left-0 bottom-0 w-5/6 max-w-md z-50">
@@ -346,22 +263,12 @@ const IndexSectionHeaders1: React.FC<IndexSectionHeaders1Props> = ({
   <div className="pt-8 pb-12">
     <div className="container mx-auto px-4">
       <div className="flex flex-wrap">
-        {activePromotionBanners.length ? (
-          activePromotionBanners.map((banner) => (
-            <div className="w-full sm:w-1/2 p-4" key={`${banner.title}-${banner.href}`}>
-              <CmsPromotionBannerCard banner={banner} />
-            </div>
-          ))
-        ) : (
-          <>
-            <div className="w-full sm:w-1/2 p-4">
-              <PromoCarouselCard slides={leftPromoSlides} />
-            </div>
-            <div className="w-full sm:w-1/2 p-4">
-              <PromoCarouselCard slides={rightPromoSlides} />
-            </div>
-          </>
-        )}
+        <div className="w-full sm:w-1/2 p-4">
+          <PromoCarouselCard slides={leftPromoSlides} />
+        </div>
+        <div className="w-full sm:w-1/2 p-4">
+          <PromoCarouselCard slides={rightPromoSlides} />
+        </div>
       </div>
     </div>
   </div>
