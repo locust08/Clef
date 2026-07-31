@@ -1,9 +1,15 @@
 import type { CollectionConfig } from 'payload'
 
+import {
+  collectionPreview,
+  collectionVersions,
+  publishedOrAuthenticated,
+} from '../preview'
+
 export const ClefEditArticles: CollectionConfig = {
   slug: 'clef-edit-articles',
   access: {
-    read: () => true,
+    read: publishedOrAuthenticated,
   },
   labels: {
     singular: 'CLEF Edit Article',
@@ -11,8 +17,13 @@ export const ClefEditArticles: CollectionConfig = {
   },
   admin: {
     defaultColumns: ['title', 'slug', 'displayOrder', 'isActive'],
+    preview: collectionPreview((doc) => {
+      const slug = typeof doc.slug === 'string' ? doc.slug : ''
+      return slug ? `/clef-edit/${slug}` : null
+    }),
     useAsTitle: 'title',
   },
+  versions: collectionVersions,
   fields: [
     {
       name: 'title',

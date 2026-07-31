@@ -1,5 +1,11 @@
 import type { Field, GlobalConfig } from 'payload'
 
+import {
+  globalPreview,
+  globalVersions,
+  publishedGlobalOrAuthenticated,
+} from '../preview'
+
 type CategoryCardDefault = {
   title: string
   image: null
@@ -127,8 +133,14 @@ export const AllProductsPages: GlobalConfig = {
   slug: 'all-products-pages',
   label: 'All Products Pages',
   access: {
-    read: () => true,
+    read: publishedGlobalOrAuthenticated,
   },
+  admin: {
+    description:
+      'Preview opens the canonical Skincare page. The Personal Care and Fragrance tabs render at /all-personal-care and /fragrance.',
+    preview: globalPreview('/all-skincare'),
+  },
+  versions: globalVersions,
   fields: [
     {
       type: 'tabs',

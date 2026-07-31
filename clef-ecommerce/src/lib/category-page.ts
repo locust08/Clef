@@ -27,6 +27,7 @@ export type CategoryPageProductsProps = {
   products: StorefrontProduct[];
   headerProducts?: StorefrontProduct[];
   medusaError: string | null;
+  previewActive?: boolean;
 };
 
 export type SubcategoryPageProductsProps = {
@@ -36,6 +37,7 @@ export type SubcategoryPageProductsProps = {
   subcategoryConfig: SubcategoryConfig;
   products: StorefrontProduct[];
   medusaError: string | null;
+  previewActive?: boolean;
 };
 
 export type ByHandlePageProps =
@@ -78,8 +80,11 @@ export const getCategoryProductsProps = async (
   }
 
   const [categoryContent, footerContent] = await Promise.all([
-    getAllProductsPageContent(handle as 'skincare' | 'personal-care' | 'fragrance'),
-    getFooterContent(),
+    getAllProductsPageContent(
+      handle as 'skincare' | 'personal-care' | 'fragrance',
+      context.preview === true,
+    ),
+    getFooterContent(context.preview === true),
   ]);
 
   try {
@@ -101,6 +106,7 @@ export const getCategoryProductsProps = async (
         products,
         headerProducts,
         medusaError: null,
+        previewActive: context.preview === true,
       },
     };
   } catch (error) {
@@ -114,6 +120,7 @@ export const getCategoryProductsProps = async (
           error instanceof Error
             ? error.message
             : 'Unable to load products from Medusa.',
+        previewActive: context.preview === true,
       },
     };
   }
@@ -134,8 +141,8 @@ export const getSubcategoryProductsProps = async (
   }
 
   const [categoryContent, footerContent] = await Promise.all([
-    getCategoryPageContent(subcategory),
-    getFooterContent(),
+    getCategoryPageContent(subcategory, context.preview === true),
+    getFooterContent(context.preview === true),
   ]);
 
   try {
@@ -149,6 +156,7 @@ export const getSubcategoryProductsProps = async (
         subcategoryConfig,
         products,
         medusaError: null,
+        previewActive: context.preview === true,
       },
     };
   } catch (error) {
@@ -163,6 +171,7 @@ export const getSubcategoryProductsProps = async (
           error instanceof Error
             ? error.message
             : 'Unable to load products from Medusa.',
+        previewActive: context.preview === true,
       },
     };
   }

@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "clef-ecommerce",
-  "main": ".open-next/worker.js",
+  "main": "custom-worker.ts",
   "compatibility_date": "2026-07-21",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "workers_dev": true,
@@ -11,7 +11,9 @@
   },
   "vars": {
     "NEXT_PUBLIC_MEDUSA_BACKEND_URL": "https://clef-medusa.easondev.workers.dev",
-    "NEXT_PUBLIC_PAYLOAD_URL": "https://clef-payload-preview.easondev.workers.dev"
+    "NEXT_PUBLIC_PAYLOAD_URL": "https://clef-payload-preview.easondev.workers.dev",
+    "PAYLOAD_ADMIN_ORIGIN": "https://clef-payload-preview.easondev.workers.dev",
+    "STOREFRONT_URL": "https://clef-ecommerce.easondev.workers.dev"
   },
   "observability": {
     "enabled": true

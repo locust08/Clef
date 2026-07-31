@@ -8,7 +8,7 @@
         "dev:doppler": "doppler run -- npm run dev",
         "build": "node scripts/next-build.mjs",
         "build:doppler": "doppler run -- npm run build",
-        "cf:build": "cross-env DEPLOYMENT_TARGET=cloudflare-workers NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://clef-medusa.easondev.workers.dev NEXT_PUBLIC_PAYLOAD_URL=https://clef-payload-preview.easondev.workers.dev opennextjs-cloudflare build --noMinify",
+        "cf:build": "cross-env DEPLOYMENT_TARGET=cloudflare-workers NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://clef-medusa.easondev.workers.dev NEXT_PUBLIC_PAYLOAD_URL=https://clef-payload-preview.easondev.workers.dev PAYLOAD_ADMIN_ORIGIN=https://clef-payload-preview.easondev.workers.dev STOREFRONT_URL=https://clef-ecommerce.easondev.workers.dev node scripts/validate-preview-env.mjs && cross-env DEPLOYMENT_TARGET=cloudflare-workers NEXT_PUBLIC_MEDUSA_BACKEND_URL=https://clef-medusa.easondev.workers.dev NEXT_PUBLIC_PAYLOAD_URL=https://clef-payload-preview.easondev.workers.dev PAYLOAD_ADMIN_ORIGIN=https://clef-payload-preview.easondev.workers.dev STOREFRONT_URL=https://clef-ecommerce.easondev.workers.dev opennextjs-cloudflare build --noMinify",
         "cf:preview": "npm run cf:build && wrangler dev",
         "cf:deploy": "npm run cf:build && wrangler deploy",
         "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
@@ -17,11 +17,12 @@
         "type-check": "tsc --noEmit",
         "typecheck:doppler": "doppler run -- npm run type-check",
         "test:email": "tsx scripts/test-email.ts",
-        "test": "node scripts/storefront-functions.test.mjs && node scripts/homepage-cms-production.test.mjs && node scripts/home-promo-carousel.test.mjs && node scripts/home-promotion-spacing.test.mjs && tsx --test src/lib/leads/submit-lead.test.ts src/lib/checkout/complete-order.test.ts src/lib/medusa/orders.test.ts src/lib/cms-all-products.test.ts src/lib/cms-homepage.test.ts",
+        "test": "node scripts/storefront-functions.test.mjs && node scripts/homepage-cms-production.test.mjs && node scripts/home-promo-carousel.test.mjs && node scripts/home-promotion-spacing.test.mjs && tsx --test src/lib/leads/submit-lead.test.ts src/lib/checkout/complete-order.test.ts src/lib/medusa/orders.test.ts src/lib/cms-all-products.test.ts src/lib/cms-homepage.test.ts src/lib/preview.test.ts",
         "test:e2e": "playwright test"
     },
     "dependencies": {
         "@medusajs/js-sdk": "^2.17.2",
+        "@payloadcms/live-preview": "^3.86.0",
         "@stripe/react-stripe-js": "^6.7.0",
         "@stripe/stripe-js": "^9.9.0",
         "@types/pg": "^8.20.0",

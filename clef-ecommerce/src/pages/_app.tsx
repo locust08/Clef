@@ -4,6 +4,7 @@ import type { AppProps } from 'next/app'
 import { MockCartProvider } from '../context/MockCartContext'
 import { CustomerProvider } from '../context/CustomerContext';
 import { FavouritesProvider } from '../context/FavouritesContext';
+import PreviewControls from '../components/preview/PreviewControls';
 
 export default function App({ Component, pageProps }: AppProps) {
     return (
@@ -11,6 +12,7 @@ export default function App({ Component, pageProps }: AppProps) {
             <FavouritesProvider>
                 <MockCartProvider>
                     <Component {...pageProps} />
+                    <PreviewControls active={pageProps.previewActive === true} />
                 </MockCartProvider>
             </FavouritesProvider>
         </CustomerProvider>

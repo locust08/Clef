@@ -4,8 +4,8 @@ import { DEFAULT_CLEF_EDIT_ARTICLES, getClefEditArticles } from '../lib/cms';
 
 const ClefInfo: React.FC = () => null;
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const articles = await getClefEditArticles();
+export const getServerSideProps: GetServerSideProps = async ({ preview }) => {
+  const articles = await getClefEditArticles(preview === true);
   const firstArticle = articles[0] ?? DEFAULT_CLEF_EDIT_ARTICLES[0];
 
   return {

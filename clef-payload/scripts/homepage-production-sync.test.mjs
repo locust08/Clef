@@ -51,10 +51,10 @@ test('production server and allowed origins fail closed', () => {
   assert.doesNotMatch(wrangler.vars.PAYLOAD_ALLOWED_ORIGINS, /\*/)
 })
 
-test('Homepage and media are publicly readable without drafts', () => {
-  assert.match(homepageSource, /access:\s*\{\s*read:\s*\(\)\s*=>\s*true/)
+test('Homepage public reads are draft-protected and media remains public', () => {
+  assert.match(homepageSource, /read:\s*publishedGlobalOrAuthenticated/)
+  assert.match(homepageSource, /versions:\s*globalVersions/)
   assert.match(mediaSource, /access:\s*\{\s*read:\s*\(\)\s*=>\s*true/)
-  assert.doesNotMatch(homepageSource, /drafts\s*:\s*true/)
 })
 
 test('production sync is idempotent, backup-gated, and content-scoped', () => {

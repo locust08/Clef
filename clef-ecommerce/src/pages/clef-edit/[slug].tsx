@@ -16,6 +16,7 @@ import {
 
 type ClefEditArticlePageProps = {
   article: ClefEditArticle;
+  previewActive: boolean;
   suggestedProducts: (StorefrontProduct & { editorialDescription: string })[];
 };
 
@@ -59,9 +60,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps<ClefEditArticlePageProps> = async ({
   params,
+  preview,
 }) => {
   const slug = typeof params?.slug === 'string' ? params.slug : '';
-  const article = await getClefEditArticle(slug);
+  const article = await getClefEditArticle(slug, preview === true);
 
   if (!article) {
     return {
@@ -102,6 +104,7 @@ export const getStaticProps: GetStaticProps<ClefEditArticlePageProps> = async ({
   return {
     props: {
       article,
+      previewActive: preview === true,
       suggestedProducts,
     },
     revalidate: 60,

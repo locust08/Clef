@@ -1,5 +1,11 @@
 import type { GlobalConfig } from 'payload'
 
+import {
+  globalPreview,
+  globalVersions,
+  publishedGlobalOrAuthenticated,
+} from '../preview'
+
 const platformOptions = [
   {
     label: 'TikTok',
@@ -19,12 +25,14 @@ export const VideoSection: GlobalConfig = {
   slug: 'video-section',
   label: 'Video Section',
   access: {
-    read: () => true,
+    read: publishedGlobalOrAuthenticated,
   },
   admin: {
     description:
-      'Manual video entries only. Do not connect this content to official social platform APIs. Frontend rendering should use the first active video per platform.',
+      'Manual video entries only. Do not connect this content to official social platform APIs. The canonical preview is the Homepage.',
+    preview: globalPreview('/'),
   },
+  versions: globalVersions,
   fields: [
     {
       name: 'sectionTitle',

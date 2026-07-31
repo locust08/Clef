@@ -16,6 +16,8 @@
   "vars": {
     "DEPLOYMENT_TARGET": "cloudflare-workers",
     "PAYLOAD_PUBLIC_SERVER_URL": "https://clef-payload-preview.easondev.workers.dev",
+    "PAYLOAD_ADMIN_ORIGIN": "https://clef-payload-preview.easondev.workers.dev",
+    "STOREFRONT_URL": "https://clef-ecommerce.easondev.workers.dev",
     "NEXT_PUBLIC_SERVER_URL": "https://clef-payload-preview.easondev.workers.dev",
     "PAYLOAD_ALLOWED_ORIGINS": "https://clef-ecommerce.easondev.workers.dev,https://clef-alpha.vercel.app",
     "EMAIL_ENABLED": "false"

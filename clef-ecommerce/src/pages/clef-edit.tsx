@@ -9,6 +9,7 @@ import { getClefEditArticles, type ClefEditArticle } from '../lib/cms';
 
 type ClefEditProps = {
   articles: ClefEditArticle[];
+  previewActive: boolean;
 };
 
 const ClefEdit: React.FC<ClefEditProps> = ({ articles }) => {
@@ -31,12 +32,15 @@ const ClefEdit: React.FC<ClefEditProps> = ({ articles }) => {
   );
 };
 
-export const getStaticProps: GetStaticProps<ClefEditProps> = async () => {
-  const articles = await getClefEditArticles();
+export const getStaticProps: GetStaticProps<ClefEditProps> = async ({
+  preview,
+}) => {
+  const articles = await getClefEditArticles(preview === true);
 
   return {
     props: {
       articles,
+      previewActive: preview === true,
     },
     revalidate: 60,
   };

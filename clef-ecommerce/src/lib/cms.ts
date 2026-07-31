@@ -318,6 +318,11 @@ type CmsVideoRow = {
   displayOrder?: number | null
 }
 
+type CmsVideoSection = {
+  sectionTitle?: string | null
+  videos?: CmsVideoRow[] | null
+}
+
 type CmsCustomerReviewRow = {
   name?: string | null
   role?: string | null
@@ -816,6 +821,12 @@ const homepageVideoPlatforms: VideoPlatform[] = [
 
 const loopbackHostnames = new Set(['localhost', '127.0.0.1', '::1'])
 
+const withDraftQuery = (path: string) => {
+  const url = new URL(path, 'https://payload.invalid')
+  url.searchParams.set('draft', 'true')
+  return `${url.pathname}${url.search}`
+}
+
 export const getCmsBaseUrl = () => {
   const configuredUrl = process.env.NEXT_PUBLIC_PAYLOAD_URL?.trim()
 
@@ -850,12 +861,15 @@ export const getCmsUrl = (path = '') => {
   return new URL(normalizedPath, `${getCmsBaseUrl()}/`).toString()
 }
 
-const cmsFetch = async <T>(path: string) => {
-  const response = await fetch(getCmsUrl(path), {
+const cmsFetch = async <T>(path: string, preview = false) => {
+  const response = await fetch(getCmsUrl(preview ? withDraftQuery(path) : path), {
     cache: 'no-store',
     headers: {
       accept: 'application/json',
       'cache-control': 'no-cache',
+      ...(preview
+        ? { 'x-payload-preview-secret': process.env.PREVIEW_SECRET || '' }
+        : {}),
     },
   })
 
@@ -1099,16 +1113,19 @@ const toClefEditArticle = (
   }
 }
 
-export const getHomepageContent = async (): Promise<HomepageContent> => {
+export const getHomepageContent = async (
+  preview = false,
+): Promise<HomepageContent> => {
   try {
     const homepage = await cmsFetch<CmsHomepage>(
       '/api/globals/homepage?depth=1',
+      preview,
     )
 
     if (
       homepage.id == null ||
       !homepage.heroTitle?.trim() ||
-      (homepage._status != null && homepage._status !== 'published')
+      (!preview && homepage._status != null && homepage._status !== 'published')
     ) {
       throw new Error('Payload Homepage global is missing canonical published content.')
     }
@@ -1201,20 +1218,42 @@ export const getHomepageContent = async (): Promise<HomepageContent> => {
 }
 
 export const getVideoSectionContent =
-  async (): Promise<VideoSectionContent> => {
-    const homepage = await getHomepageContent()
+  async (preview = false): Promise<VideoSectionContent> => {
+    try {
+      const videoSection = await cmsFetch<CmsVideoSection>(
+        '/api/globals/video-section?depth=1',
+        preview,
+      )
+      const videos = rowsToHomepageVideos(videoSection.videos)
 
-    return {
-      sectionTitle: DEFAULT_VIDEO_SECTION_CONTENT.sectionTitle,
-      videos: homepage.homepageVideos.length
-        ? homepage.homepageVideos
-        : DEFAULT_HOMEPAGE_CONTENT.homepageVideos,
+      return {
+        sectionTitle: textOrFallback(
+          videoSection.sectionTitle,
+          DEFAULT_VIDEO_SECTION_CONTENT.sectionTitle,
+        ),
+        videos: videos.length
+          ? videos
+          : DEFAULT_HOMEPAGE_CONTENT.homepageVideos,
+      }
+    } catch {
+      const homepage = await getHomepageContent(preview)
+      return {
+        sectionTitle: DEFAULT_VIDEO_SECTION_CONTENT.sectionTitle,
+        videos: homepage.homepageVideos.length
+          ? homepage.homepageVideos
+          : DEFAULT_HOMEPAGE_CONTENT.homepageVideos,
+      }
     }
   }
 
-export const getFooterContent = async (): Promise<FooterContent> => {
+export const getFooterContent = async (
+  preview = false,
+): Promise<FooterContent> => {
   try {
-    const footer = await cmsFetch<CmsFooter>('/api/globals/footer?depth=1')
+    const footer = await cmsFetch<CmsFooter>(
+      '/api/globals/footer?depth=1',
+      preview,
+    )
     const socialLinks =
       footer.socialLinks
         ?.map((link) => ({
@@ -1260,12 +1299,14 @@ export const getFooterContent = async (): Promise<FooterContent> => {
 
 export const getAllProductsPageContent = async (
   slug: 'skincare' | 'personal-care' | 'fragrance',
+  preview = false,
 ): Promise<AllProductsPageContent> => {
   const fallback = DEFAULT_ALL_PRODUCTS_PAGE_CONTENT[slug]
 
   try {
     const allProductsPages = await cmsFetch<CmsAllProductsPages>(
       '/api/globals/all-products-pages?depth=1',
+      preview,
     )
     const cmsContent =
       slug === 'personal-care'
@@ -1335,6 +1376,7 @@ export const getAllProductsPageContent = async (
 
 export const getCategoryPageContent = async (
   slug: string,
+  preview = false,
 ): Promise<CategoryPageContent> => {
   const fallback =
     DEFAULT_CATEGORY_CONTENT[slug] ??
@@ -1354,6 +1396,7 @@ export const getCategoryPageContent = async (
   try {
     const result = await cmsFetch<CmsFindResponse<CmsCategoryPage>>(
       `/api/category-pages?${params.toString()}`,
+      preview,
     )
     const categoryPage = result.docs?.[0]
 
@@ -1407,7 +1450,9 @@ export const getCategoryPageContent = async (
   }
 }
 
-export const getClefEditArticles = async (): Promise<ClefEditArticle[]> => {
+export const getClefEditArticles = async (
+  preview = false,
+): Promise<ClefEditArticle[]> => {
   const params = new URLSearchParams({
     depth: '1',
     limit: '12',
@@ -1418,6 +1463,7 @@ export const getClefEditArticles = async (): Promise<ClefEditArticle[]> => {
   try {
     const result = await cmsFetch<CmsFindResponse<CmsClefEditArticle>>(
       `/api/clef-edit-articles?${params.toString()}`,
+      preview,
     )
     const articles =
       result.docs
@@ -1445,6 +1491,7 @@ export const getClefEditArticles = async (): Promise<ClefEditArticle[]> => {
 
 export const getClefEditArticle = async (
   slug: string,
+  preview = false,
 ): Promise<ClefEditArticle | null> => {
   const fallback = getDefaultClefEditArticle(slug)
   const params = new URLSearchParams({
@@ -1457,6 +1504,7 @@ export const getClefEditArticle = async (
   try {
     const result = await cmsFetch<CmsFindResponse<CmsClefEditArticle>>(
       `/api/clef-edit-articles?${params.toString()}`,
+      preview,
     )
     const article = result.docs?.[0]
 
